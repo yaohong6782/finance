@@ -28,7 +28,7 @@ public class UserService {
     private final JwtService jwtService;
     private PasswordEncoder passwordEncoder;
 
-    public UserDTO userSignUp(UserDTO userRequest) throws CustomException {
+    public UserDTO userSignUp(UserDTO userRequest) {
         Optional<User> existingUser = userRepository.findByUsernameOrEmail(userRequest.getUsername(), userRequest.getEmail());
         if (existingUser.isPresent()) {
             User user = existingUser.get();
