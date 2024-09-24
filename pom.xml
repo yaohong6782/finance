@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.rundown</groupId>
-	<artifactId>budgetTracking</artifactId>
+	<artifactId>financeTracking</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>spring-rundown</name>
 	<description>Speedrun developing for familiarisation</description>

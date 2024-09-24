@@ -1,0 +1,23 @@
+package com.rundown.financeTracking.rest.requests;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class IncomeRequest {
+    private Long userId;
+    private String source;
+    private Float amount;
+    private String frequency;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
+}
