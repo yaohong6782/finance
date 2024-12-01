@@ -38,7 +38,7 @@ public class IncomeService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("Please sign in before inserting your income", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
 
-        String incomeSource = incomeRequest.getSource();
+        String incomeSource = incomeRequest.getSource().toUpperCase();
 
         // If source is day job or if its blank, default it to monthly frequency
         // Set the start and end day to the first and last day of each month as well
@@ -54,6 +54,11 @@ public class IncomeService {
             YearMonth currentMonth = YearMonth.now();
             LocalDate endDate = currentMonth.atEndOfMonth();
             incomeDTO.setEndDate(endDate);
+        }
+        else if ((incomeSource.equalsIgnoreCase(CommonVariables.SOURCE_OTHERS)
+                || incomeSource.equalsIgnoreCase(CommonVariables.SOURCE_FREELANCE))
+                && incomeRequest.getFrequency().isBlank()) {
+            throw new CustomException("Frequency is required, when source is not your day job", HttpStatus.BAD_REQUEST, HttpStatus.BAD_GATEWAY.getReasonPhrase());
         }
 
         Income income = incomeMapper.IncomeDTOtoIncome(incomeDTO);

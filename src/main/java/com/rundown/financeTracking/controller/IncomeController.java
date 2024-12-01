@@ -6,6 +6,7 @@ import com.rundown.financeTracking.rest.requests.IncomeRequest;
 import com.rundown.financeTracking.service.IncomeService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ public class IncomeController {
 
     private IncomeService incomeService;
 
+    @Tag(name = "Salary source", description = "This API saves the user salary sources")
     @PostMapping("/salarySource")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
