@@ -17,11 +17,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "users", schema = "budget")
+@Table(name = "users", schema = "public")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -29,7 +29,7 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, unique = false)
+    @Column(name="password_hash", nullable = false, unique = false)
     private String password;
 
     @Column(nullable = false, unique = false)
@@ -37,6 +37,7 @@ public class User implements UserDetails {
 
     @Column(nullable = false, unique = false)
     private LocalDate updatedAt;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

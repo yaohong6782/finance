@@ -10,32 +10,27 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Builder
-@Table(name = "incomes", schema = "budget")
+@Table(name = "income", schema = "public")
 public class Income {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long incomeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "source", length = 100, nullable = false)
-    private String source;
+    @Column(name = "source_name", length = 100, nullable = false)
+    private String sourceName;
+
+    @Column(name = "type", length = 100, nullable = false)
+    private String type;
 
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "frequency", nullable = false)
-    private Frequency frequency;
-
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
-
-    @Column(name = "end_date")
-    private LocalDate endDate;
+    @Column(name = "description", length = 100)
+    private String description;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
@@ -43,7 +38,11 @@ public class Income {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
 
-    public enum Frequency {
-        DAILY, WEEKLY, MONTHLY, YEARLY
-    }
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "frequency", nullable = false)
+//    private Frequency frequency;
+//
+//    public enum Frequency {
+//        DAILY, WEEKLY, MONTHLY, YEARLY
+//    }
 }
