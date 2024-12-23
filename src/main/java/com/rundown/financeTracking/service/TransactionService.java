@@ -3,19 +3,24 @@ package com.rundown.financeTracking.service;
 import com.rundown.financeTracking.entity.Categories;
 import com.rundown.financeTracking.entity.Transaction;
 import com.rundown.financeTracking.entity.User;
+import com.rundown.financeTracking.exceptions.CustomException;
+import com.rundown.financeTracking.mapper.TransactionMapper;
 import com.rundown.financeTracking.repository.CategoryRepository;
 import com.rundown.financeTracking.repository.TransactionRepository;
+import com.rundown.financeTracking.repository.UserRepository;
+import com.rundown.financeTracking.rest.dtos.TransactionDTO;
 import com.rundown.financeTracking.rest.requests.TransactionFields;
 import com.rundown.financeTracking.rest.requests.TransactionRequestFields;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Builder
@@ -24,8 +29,10 @@ import java.util.List;
 public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
+    private TransactionMapper transactionMapper;
 
-    public String addTransaction(TransactionRequestFields transactionRequestFields) {
+    public List<TransactionDTO> addTransaction(TransactionRequestFields transactionRequestFields) {
         log.info("Processing transactions to be added : {} " , transactionRequestFields);
 
         String username = transactionRequestFields.getUser();
@@ -35,11 +42,11 @@ public class TransactionService {
         List<Transaction> transactionsList = new ArrayList<>();
         List<Categories> categoriesList = new ArrayList<>();
 
-        for (TransactionFields t : transactionRequestFields.getTransactionFields()) {
-            Categories categories = categoryRepository.findByType(t.getCategory().toLowerCase())
+        for (TransactionFields transField : transactionRequestFields.getTransactionFields()) {
+            Categories categories = categoryRepository.findByType(transField.getCategory().toLowerCase())
                     .orElseGet(() -> {
                 Categories newCategory = new Categories();
-                newCategory.setType(t.getCategory());
+                newCategory.setType(transField.getCategory());
 
                 categoriesList.add(newCategory);
                 return newCategory;
@@ -47,9 +54,9 @@ public class TransactionService {
             Transaction transaction = Transaction.builder()
                     .user(user)
                     .categories(categories)
-                    .amount(t.getAmount())
-                    .transactionDate(LocalDate.parse(t.getTransactionDate()))
-                    .description(t.getDescription())
+                    .amount(transField.getAmount())
+                    .transactionDate(LocalDate.parse(transField.getTransactionDate()))
+                    .description(transField.getDescription())
                     .build();
             transactionsList.add(transaction);
         }
@@ -60,6 +67,22 @@ public class TransactionService {
 
         transactionRepository.saveAll(transactionsList);
 
-        return "Successfully added transaction please check";
+        List<TransactionDTO> transactionDTOS = transactionMapper.toTransactionDTOList(transactionsList);
+
+        return transactionDTOS;
+    }
+
+    public void transactionSummary(String username) {
+        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
+
+        String userId = "";
+        if (user.isPresent()) {
+            userId = String.valueOf(user.get().getUserId());
+        }
+        log.info("user id to find : {} " , userId);
+        List<Transaction> transactionList = transactionRepository.findUserTransactionById(userId);
+        log.info("transaction list : {} size : {}  " , transactionList.toString(), transactionList.size());
     }
 }

@@ -3,9 +3,11 @@ package com.rundown.financeTracking.controller;
 import com.rundown.financeTracking.exceptions.CustomException;
 import com.rundown.financeTracking.repository.TransactionRepository;
 import com.rundown.financeTracking.rest.dtos.IncomeDTO;
+import com.rundown.financeTracking.rest.dtos.TransactionDTO;
 import com.rundown.financeTracking.rest.requests.IncomeRequest;
 import com.rundown.financeTracking.rest.requests.TransactionFields;
 import com.rundown.financeTracking.rest.requests.TransactionRequestFields;
+import com.rundown.financeTracking.rest.requests.TransactionSummaryFields;
 import com.rundown.financeTracking.service.TransactionService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -36,11 +38,27 @@ public class TransactionsController {
             @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
             @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
-    public ResponseEntity<?> addTransaction(@RequestBody TransactionRequestFields transactionRequestFields) throws CustomException {
+    public ResponseEntity<List<TransactionDTO>> addTransaction(@RequestBody TransactionRequestFields transactionRequestFields) throws CustomException {
         log.info("Add transaction request : {} ", transactionRequestFields.getTransactionFields().toString());
 
-        transactionService.addTransaction(transactionRequestFields);
+        List<TransactionDTO> transactionDTO = transactionService.addTransaction(transactionRequestFields);
 
+        return new ResponseEntity<>(transactionDTO, HttpStatus.CREATED);
+    }
+
+
+    @Tag(name = "Transaction Summary", description = "This API records the transactions summaries for user")
+    @PostMapping("/transactionSummary")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
+            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    public ResponseEntity<?> transactionSummary(@RequestBody TransactionSummaryFields transactionSummaryFields) throws CustomException {
+        String username = transactionSummaryFields.getUsername();
+        log.info("Transaction summary for user : {} " , username);
+        transactionService.transactionSummary(username);
+//
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }
