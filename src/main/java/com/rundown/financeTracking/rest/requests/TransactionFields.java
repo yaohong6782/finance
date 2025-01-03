@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TransactionFields {
+    // Add new transactions
     private BigDecimal amount;
     private String category;
     private String transactionDate;

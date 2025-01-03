@@ -52,7 +52,7 @@ public class TransactionServiceTest {
 
         TransactionRequestFields transactionRequestFields = new TransactionRequestFields();
         transactionRequestFields.setUser("test");
-        transactionRequestFields.setTransactionFields(List.of(transactionField));
+        transactionRequestFields.setTransactions(List.of(transactionField));
 
         Categories categories = new Categories();
         categories.setType("food");

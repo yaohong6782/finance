@@ -4,6 +4,7 @@ import com.rundown.financeTracking.entity.Transaction;
 import com.rundown.financeTracking.rest.dtos.TransactionDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -13,8 +14,15 @@ public interface TransactionMapper {
     @Mapping(source = "description", target = "description")
     @Mapping(source = "transactionDate", target = "transactionDate")
     @Mapping(source = "createdAt", target = "createdAt")
+    @Mapping(source = "categories", target = "categoriesDTO")
     TransactionDTO toTransactionDTO(Transaction transaction);
 
-    // Map a list of transactions to a list of TransactionDTOs
+
     List<TransactionDTO> toTransactionDTOList(List<Transaction> transactions);
+
+//    Page<TransactionDTO> toTransactionDTOList(Page<Transaction> transactions);
+
+    default Page<TransactionDTO> toTransactionDTOPage(Page<Transaction> transactionPage) {
+        return transactionPage.map(this::toTransactionDTO);
+    }
 }

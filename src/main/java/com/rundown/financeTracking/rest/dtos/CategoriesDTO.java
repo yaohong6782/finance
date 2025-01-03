@@ -5,17 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransactionDTO {
-    private BigDecimal amount;
-    private CategoriesDTO categoriesDTO;
-    private String description;
-    private LocalDate transactionDate;
+public class CategoriesDTO {
+    private String type;
     private LocalDate createdAt;
 }

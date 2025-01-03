@@ -11,9 +11,13 @@ import com.rundown.financeTracking.repository.UserRepository;
 import com.rundown.financeTracking.rest.dtos.TransactionDTO;
 import com.rundown.financeTracking.rest.requests.TransactionFields;
 import com.rundown.financeTracking.rest.requests.TransactionRequestFields;
+import com.rundown.financeTracking.rest.requests.TransactionSearchFields;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +46,8 @@ public class TransactionService {
         List<Transaction> transactionsList = new ArrayList<>();
         List<Categories> categoriesList = new ArrayList<>();
 
-        for (TransactionFields transField : transactionRequestFields.getTransactionFields()) {
+
+        for (TransactionFields transField : transactionRequestFields.getTransactions()) {
             Categories categories = categoryRepository.findByType(transField.getCategory().toLowerCase())
                     .orElseGet(() -> {
                 Categories newCategory = new Categories();
@@ -51,6 +56,7 @@ public class TransactionService {
                 categoriesList.add(newCategory);
                 return newCategory;
             });
+
             Transaction transaction = Transaction.builder()
                     .user(user)
                     .categories(categories)
@@ -62,17 +68,17 @@ public class TransactionService {
         }
 
         if (!categoriesList.isEmpty()) {
-           categoryRepository.saveAll(categoriesList);
+//           categoryRepository.saveAll(categoriesList);
         }
 
-        transactionRepository.saveAll(transactionsList);
+//        transactionRepository.saveAll(transactionsList);
 
         List<TransactionDTO> transactionDTOS = transactionMapper.toTransactionDTOList(transactionsList);
 
         return transactionDTOS;
     }
 
-    public void transactionSummary(String username) {
+    public List<TransactionDTO> transactionSummary(String username) {
         Optional<User> user = Optional.ofNullable(userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
@@ -81,8 +87,56 @@ public class TransactionService {
         if (user.isPresent()) {
             userId = String.valueOf(user.get().getUserId());
         }
-        log.info("user id to find : {} " , userId);
-        List<Transaction> transactionList = transactionRepository.findUserTransactionById(userId);
-        log.info("transaction list : {} size : {}  " , transactionList.toString(), transactionList.size());
+        PageRequest pageRequest = PageRequest.of(0,10);
+        List<Transaction> transactionList = transactionRepository.findUserTransactionById(userId, pageRequest);
+        log.info("transaction list : {} " , transactionList);
+
+        List<TransactionDTO> transactionDTOList = transactionMapper.toTransactionDTOList(transactionList);
+
+        return transactionDTOList;
+    }
+
+    public Page<TransactionDTO> transactionPageSummary(String username, int page, int size) {
+        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
+
+        String userId = user.map(u -> String.valueOf(u.getUserId()))
+                .orElseThrow(() -> new CustomException("Invalid user", HttpStatus.BAD_REQUEST, "Invalid user"));
+
+        PageRequest pageRequest = PageRequest.of(page,size);
+        Page<Transaction> transactionPage = transactionRepository.findUserTransactionByIdPagination(userId, pageRequest);
+        log.info("transaction page : {} ", transactionPage);
+
+        return transactionMapper.toTransactionDTOPage(transactionPage);
+    }
+
+    public Page<TransactionDTO> searchTransactionPageSummary(TransactionSearchFields transactionSearchFields, int page, int size) {
+        log.info("username : {} " , transactionSearchFields.getUsername());
+
+        String category = transactionSearchFields.getSearchFields().getCategory().isBlank() ?
+                "" : transactionSearchFields.getSearchFields().getCategory();
+
+
+        String amount = transactionSearchFields.getSearchFields().getAmount().isBlank() ?
+                null : transactionSearchFields.getSearchFields().getAmount();
+
+        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(transactionSearchFields.getUsername())
+                .orElseThrow(() ->
+                        new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
+
+        String userId = user.map(u -> String.valueOf(u.getUserId()))
+                .orElseThrow(() -> new CustomException("Invalid user", HttpStatus.BAD_REQUEST, "Invalid user"));
+
+        PageRequest pageRequest = PageRequest.of(page,size);
+        Page<Transaction> transactionPage = transactionRepository.findUserTransactionSearchesByIdPagination(
+                userId,
+                category,
+                amount != null ? Double.valueOf(amount) : null,
+                pageRequest
+        );
+        log.info("transaction searched pages : {} ", transactionPage);
+
+        return transactionMapper.toTransactionDTOPage(transactionPage);
     }
 }
