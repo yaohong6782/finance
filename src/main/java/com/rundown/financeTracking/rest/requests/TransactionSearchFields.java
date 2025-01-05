@@ -1,16 +1,13 @@
 package com.rundown.financeTracking.rest.requests;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
-@AllArgsConstructor
+@SuperBuilder
 @NoArgsConstructor
-public class TransactionSearchFields {
-    private String username;
+public final class TransactionSearchFields extends SearchMandatoryFields {
     private SearchFields searchFields;
 }

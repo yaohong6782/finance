@@ -17,7 +17,6 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -68,10 +67,10 @@ public class TransactionService {
         }
 
         if (!categoriesList.isEmpty()) {
-//           categoryRepository.saveAll(categoriesList);
+           categoryRepository.saveAll(categoriesList);
         }
 
-//        transactionRepository.saveAll(transactionsList);
+        transactionRepository.saveAll(transactionsList);
 
         List<TransactionDTO> transactionDTOS = transactionMapper.toTransactionDTOList(transactionsList);
 
@@ -116,7 +115,6 @@ public class TransactionService {
 
         String category = transactionSearchFields.getSearchFields().getCategory().isBlank() ?
                 "" : transactionSearchFields.getSearchFields().getCategory();
-
 
         String amount = transactionSearchFields.getSearchFields().getAmount().isBlank() ?
                 null : transactionSearchFields.getSearchFields().getAmount();
