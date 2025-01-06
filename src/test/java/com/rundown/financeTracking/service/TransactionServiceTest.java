@@ -25,13 +25,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -56,6 +52,32 @@ public class TransactionServiceTest {
     @InjectMocks
     private TransactionService transactionService;
 
+    @Test
+    public void testAddTransaction_Success() {
+        TransactionRequestFields transactionRequestFields = new TransactionRequestFields();
+        transactionRequestFields.setUser("tester");
+
+        TransactionFields transactionField = new TransactionFields();
+        transactionField.setCategory("food");
+        transactionField.setAmount(BigDecimal.valueOf(100.0));
+        transactionField.setTransactionDate("2024-01-01");
+        transactionField.setDescription("Lunch");
+
+        transactionRequestFields.setTransactions(Collections.singletonList(transactionField));
+
+        User mockUser = new User();
+        mockUser.setUsername("tester");
+
+        when(categoryRepository.findByType("food")).thenReturn(Optional.empty());
+        when(transactionMapper.toTransactionDTOList(anyList()))
+                .thenReturn(anyList());
+
+        transactionService.addTransaction(transactionRequestFields);
+
+        verify(transactionRepository, times(1)).saveAll(anyList());
+        verify(categoryRepository, times(1)).saveAll(anyList());
+        verify(transactionMapper, times(1)).toTransactionDTOList(anyList());
+    }
 
     @Test
     public void testAddTransaction() {
@@ -74,8 +96,6 @@ public class TransactionServiceTest {
         transactionRequestFields.setUser("test");
         transactionRequestFields.setTransactions(List.of(transactionField));
 
-        Categories categories = new Categories();
-        categories.setType("food");
 
         when(categoryRepository.findByType("food")).thenReturn(Optional.empty());
 
@@ -241,5 +261,80 @@ public class TransactionServiceTest {
                         transactionSearchFields, 0, 10
                 );
         assertEquals(expectedDTOPage, result);
+    }
+    @Test
+    void testSearchTransactionPageSummary_Success() {
+        // Arrange
+        TransactionSearchFields searchFields = new TransactionSearchFields();
+        searchFields.setUsername("testUser");
+
+        SearchFields fields = new SearchFields();
+        fields.setCategory("FOOD");
+        fields.setAmount("100");
+        searchFields.setSearchFields(fields);
+
+        User mockUser = new User();
+        mockUser.setUserId(1L);
+
+        Transaction mockTransaction = new Transaction();
+        TransactionDTO mockTransactionDTO = new TransactionDTO();
+
+        Page<Transaction> mockPage = new PageImpl<>(Collections.singletonList(mockTransaction));
+        Page<TransactionDTO> expectedDTOPage = new PageImpl<>(Collections.singletonList(mockTransactionDTO));
+
+//        List<Transaction> mockTransationList = new ArrayList<>(Collections.singletonList(mockTransaction));
+
+        // Mock repository calls
+        when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
+        when(transactionRepository.findUserTransactionSearchesByIdPagination(
+                "1",
+                "FOOD",
+                100.0,
+//                any(PageRequest.class)
+                PageRequest.of(0,10)
+        )).thenReturn(mockPage);
+//        when(transactionRepository.findUserTransactionSearchesByIdPagination(
+//                eq("1"),
+//                eq("FOOD"),
+//                eq(100.0),
+//                any(PageRequest.class)
+//        )).thenReturn(mockPage);
+        when(transactionMapper.toTransactionDTOPage(mockPage)).thenReturn(expectedDTOPage);
+
+        // Act
+        Page<TransactionDTO> result = transactionService.searchTransactionPageSummary(searchFields, 0, 10);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(expectedDTOPage, result);
+        verify(userRepository).findByUsername("testUser");
+        verify(transactionRepository).findUserTransactionSearchesByIdPagination(
+                ("1"),
+                ("FOOD"),
+                (100.0),
+//                any(PageRequest.class)
+                PageRequest.of(0,10)
+        );
+    }
+    @Test
+    void testSearchTransactionPageSummary_UserNotFound() {
+        // Arrange
+        TransactionSearchFields searchFields = new TransactionSearchFields();
+        searchFields.setUsername("nonexistentUser");
+
+        SearchFields fields = new SearchFields();
+        fields.setCategory("FOOD");
+        fields.setAmount("100");
+        searchFields.setSearchFields(fields);
+
+        when(userRepository.findByUsername("nonexistentUser")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        CustomException exception = assertThrows(CustomException.class, () ->
+                transactionService.searchTransactionPageSummary(searchFields, 0, 10)
+        );
+
+        assertEquals("User does not exist", exception.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
     }
 }
