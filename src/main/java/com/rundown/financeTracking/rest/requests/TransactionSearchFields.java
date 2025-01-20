@@ -8,6 +8,6 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-public final class TransactionSearchFields extends SearchMandatoryFields {
+public final class TransactionSearchFields extends MandatoryFields {
     private SearchFields searchFields;
 }

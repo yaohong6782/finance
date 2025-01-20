@@ -9,6 +9,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public sealed class SearchMandatoryFields permits TransactionSearchFields{
+public sealed class MandatoryFields permits TransactionSearchFields {
     private String username;
 }

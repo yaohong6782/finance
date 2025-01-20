@@ -1,8 +1,6 @@
 package com.rundown.financeTracking.controller;
 
 import com.rundown.financeTracking.exceptions.CustomException;
-import com.rundown.financeTracking.repository.TransactionRepository;
-import com.rundown.financeTracking.rest.dtos.IncomeDTO;
 import com.rundown.financeTracking.rest.dtos.TransactionDTO;
 import com.rundown.financeTracking.rest.requests.*;
 import com.rundown.financeTracking.service.TransactionService;

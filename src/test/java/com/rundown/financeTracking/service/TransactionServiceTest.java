@@ -13,7 +13,6 @@ import com.rundown.financeTracking.rest.requests.SearchFields;
 import com.rundown.financeTracking.rest.requests.TransactionFields;
 import com.rundown.financeTracking.rest.requests.TransactionRequestFields;
 import com.rundown.financeTracking.rest.requests.TransactionSearchFields;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -68,6 +67,7 @@ public class TransactionServiceTest {
         User mockUser = new User();
         mockUser.setUsername("tester");
 
+        when(userRepository.findByUsername("tester")).thenReturn(Optional.of(mockUser));
         when(categoryRepository.findByType("food")).thenReturn(Optional.empty());
         when(transactionMapper.toTransactionDTOList(anyList()))
                 .thenReturn(anyList());
@@ -83,26 +83,26 @@ public class TransactionServiceTest {
     public void testAddTransaction() {
         User mockUser = new User();
         mockUser.setUsername("test");
-        when(transactionRepository.findUserByName(any()))
-                .thenReturn(mockUser);
-
-        TransactionFields transactionField = new TransactionFields();
-        transactionField.setCategory("food");
-        transactionField.setAmount(BigDecimal.valueOf(100.0));
-        transactionField.setTransactionDate("2024-01-01");
-        transactionField.setDescription("Lunch");
 
         TransactionRequestFields transactionRequestFields = new TransactionRequestFields();
-        transactionRequestFields.setUser("test");
-        transactionRequestFields.setTransactions(List.of(transactionField));
+        TransactionFields transactionFields = new TransactionFields();
 
+        transactionFields.setCategory("food");
+        transactionFields.setTransactionDate("2024-01-01");
+        transactionFields.setAmount(BigDecimal.valueOf(100));
+        transactionFields.setDescription("Lunch");
+
+        transactionRequestFields.setUser(mockUser.getUsername());
+        transactionRequestFields.setTransactions(Collections.singletonList(transactionFields));
+
+        when(userRepository.findByUsername(any()))
+                .thenReturn(Optional.of(mockUser));
 
         when(categoryRepository.findByType("food")).thenReturn(Optional.empty());
-
         transactionService.addTransaction(transactionRequestFields);
 
-        verify(transactionRepository, times(1)).saveAll(anyList());
         verify(categoryRepository, times(1)).saveAll(anyList());
+        verify(transactionRepository, times(1)).saveAll(anyList());
     }
 
     @Test
@@ -141,8 +141,6 @@ public class TransactionServiceTest {
 
         List<TransactionDTO> result =
                 transactionService.transactionSummary("test");
-
-
 
         assertEquals(mockTransactionDTOList.size(), mockTransactionList.size());
         verify(transactionRepository, times(1)).findUserTransactionById(
@@ -282,7 +280,6 @@ public class TransactionServiceTest {
         Page<Transaction> mockPage = new PageImpl<>(Collections.singletonList(mockTransaction));
         Page<TransactionDTO> expectedDTOPage = new PageImpl<>(Collections.singletonList(mockTransactionDTO));
 
-//        List<Transaction> mockTransationList = new ArrayList<>(Collections.singletonList(mockTransaction));
 
         // Mock repository calls
         when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(mockUser));
@@ -293,12 +290,7 @@ public class TransactionServiceTest {
 //                any(PageRequest.class)
                 PageRequest.of(0,10)
         )).thenReturn(mockPage);
-//        when(transactionRepository.findUserTransactionSearchesByIdPagination(
-//                eq("1"),
-//                eq("FOOD"),
-//                eq(100.0),
-//                any(PageRequest.class)
-//        )).thenReturn(mockPage);
+
         when(transactionMapper.toTransactionDTOPage(mockPage)).thenReturn(expectedDTOPage);
 
         // Act
@@ -312,7 +304,6 @@ public class TransactionServiceTest {
                 ("1"),
                 ("FOOD"),
                 (100.0),
-//                any(PageRequest.class)
                 PageRequest.of(0,10)
         );
     }

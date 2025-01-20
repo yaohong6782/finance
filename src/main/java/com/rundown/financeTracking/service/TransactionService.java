@@ -39,8 +39,16 @@ public class TransactionService {
         log.info("Processing transactions to be added : {} " , transactionRequestFields);
 
         String username = transactionRequestFields.getUser();
-        User user = transactionRepository.findUserByName(username);
-        log.info("User found : {} " , user);
+        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
+
+        User foundUser = new User();
+        if (user.isPresent()) {
+            foundUser = user.get();
+        }
+
+        log.info("User found : {} " , foundUser);
 
         List<Transaction> transactionsList = new ArrayList<>();
         List<Categories> categoriesList = new ArrayList<>();
@@ -57,7 +65,7 @@ public class TransactionService {
             });
 
             Transaction transaction = Transaction.builder()
-                    .user(user)
+                    .user(foundUser)
                     .categories(categories)
                     .amount(transField.getAmount())
                     .transactionDate(LocalDate.parse(transField.getTransactionDate()))
