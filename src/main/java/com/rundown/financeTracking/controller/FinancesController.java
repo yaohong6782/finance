@@ -1,9 +1,9 @@
 package com.rundown.financeTracking.controller;
 
 import com.rundown.financeTracking.exceptions.CustomException;
-import com.rundown.financeTracking.rest.dtos.TransactionDTO;
+import com.rundown.financeTracking.rest.dtos.IncomeDTO;
 import com.rundown.financeTracking.rest.requests.IncomeConfigurations;
-import com.rundown.financeTracking.rest.requests.TransactionRequestFields;
+import com.rundown.financeTracking.service.FinanceService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +23,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/finances")
 public class FinancesController {
+    private final FinanceService financeService;
+
     @Tag(name = "Setting income configurations", description = "This API configures user's income settings")
     @PostMapping("/setIncome")
     @ApiResponses(value = {
@@ -30,11 +32,10 @@ public class FinancesController {
             @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
             @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
-    public ResponseEntity<?> setIncome(@RequestBody IncomeConfigurations incomeConfigurations) throws CustomException {
+    public ResponseEntity<IncomeDTO> setIncome(@RequestBody IncomeConfigurations incomeConfigurations) throws CustomException {
 
         log.info("Income configurations : {} ", incomeConfigurations);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        IncomeDTO incomeDTO = financeService.saveIncomeSettings(incomeConfigurations);
+        return new ResponseEntity<>(incomeDTO, HttpStatus.NO_CONTENT);
     }
-
-
 }

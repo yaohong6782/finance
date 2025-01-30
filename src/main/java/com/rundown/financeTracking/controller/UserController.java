@@ -7,6 +7,7 @@ import com.rundown.financeTracking.rest.responses.UserLoginJwt;
 import com.rundown.financeTracking.service.UserService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ public class UserController {
 
     private final UserService userService;
 
+    @Tag(name = "User Controller", description = "This API handles user login")
     @PostMapping("/login")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
@@ -36,6 +38,7 @@ public class UserController {
         return new ResponseEntity<>(userLoginJwt, HttpStatus.OK);
     }
 
+    @Tag(name = "User Controller", description = "This API handles user sign up")
     @PostMapping("/signUp")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),

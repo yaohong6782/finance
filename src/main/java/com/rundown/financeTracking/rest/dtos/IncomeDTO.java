@@ -13,11 +13,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class IncomeDTO {
     private UserDTO userDTO;
-    private String source;
+    private String sourceName;
     private Float amount;
-    private String frequency;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private String description;
+    private LocalDate incomeDate;
     private LocalDate createdAt;
     private LocalDate updatedAt;
 }

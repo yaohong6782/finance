@@ -1,5 +1,6 @@
 package com.rundown.financeTracking.service;
 
+import com.rundown.financeTracking.constants.CommonVariables;
 import com.rundown.financeTracking.entity.Categories;
 import com.rundown.financeTracking.entity.Transaction;
 import com.rundown.financeTracking.entity.User;
@@ -15,6 +16,7 @@ import com.rundown.financeTracking.rest.requests.TransactionSearchFields;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -33,22 +35,17 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+
+    @Autowired
     private TransactionMapper transactionMapper;
 
     public List<TransactionDTO> addTransaction(TransactionRequestFields transactionRequestFields) {
         log.info("Processing transactions to be added : {} " , transactionRequestFields);
 
         String username = transactionRequestFields.getUser();
-        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
-                        new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
-
-        User foundUser = new User();
-        if (user.isPresent()) {
-            foundUser = user.get();
-        }
-
-        log.info("User found : {} " , foundUser);
+                        new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
 
         List<Transaction> transactionsList = new ArrayList<>();
         List<Categories> categoriesList = new ArrayList<>();
@@ -65,7 +62,7 @@ public class TransactionService {
             });
 
             Transaction transaction = Transaction.builder()
-                    .user(foundUser)
+                    .user(user)
                     .categories(categories)
                     .amount(transField.getAmount())
                     .transactionDate(LocalDate.parse(transField.getTransactionDate()))
@@ -86,14 +83,12 @@ public class TransactionService {
     }
 
     public List<TransactionDTO> transactionSummary(String username) {
-        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
-                        new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
+                        new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
 
-        String userId = "";
-        if (user.isPresent()) {
-            userId = String.valueOf(user.get().getUserId());
-        }
+        String userId = String.valueOf(user.getUserId());
+
         PageRequest pageRequest = PageRequest.of(0,10);
         List<Transaction> transactionList = transactionRepository.findUserTransactionById(userId, pageRequest);
         log.info("transaction list : {} " , transactionList);
@@ -104,13 +99,11 @@ public class TransactionService {
     }
 
     public Page<TransactionDTO> transactionPageSummary(String username, int page, int size) {
-        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
-                        new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
+                        new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
 
-        String userId = user.map(u -> String.valueOf(u.getUserId()))
-                .orElseThrow(() -> new CustomException("Invalid user", HttpStatus.BAD_REQUEST, "Invalid user"));
-
+        String userId = String.valueOf(user.getUserId());
         PageRequest pageRequest = PageRequest.of(page,size);
         Page<Transaction> transactionPage = transactionRepository.findUserTransactionByIdPagination(userId, pageRequest);
         log.info("transaction page : {} ", transactionPage);
@@ -127,12 +120,11 @@ public class TransactionService {
         String amount = transactionSearchFields.getSearchFields().getAmount().isBlank() ?
                 null : transactionSearchFields.getSearchFields().getAmount();
 
-        Optional<User> user = Optional.ofNullable(userRepository.findByUsername(transactionSearchFields.getUsername())
+        User user = userRepository.findByUsername(transactionSearchFields.getUsername())
                 .orElseThrow(() ->
-                        new CustomException("User does not exist", HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase())));
+                        new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
 
-        String userId = user.map(u -> String.valueOf(u.getUserId()))
-                .orElseThrow(() -> new CustomException("Invalid user", HttpStatus.BAD_REQUEST, "Invalid user"));
+        String userId = String.valueOf(user.getUserId());
 
         PageRequest pageRequest = PageRequest.of(page,size);
         Page<Transaction> transactionPage = transactionRepository.findUserTransactionSearchesByIdPagination(

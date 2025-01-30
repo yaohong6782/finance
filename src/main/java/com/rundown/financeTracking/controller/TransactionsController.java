@@ -24,7 +24,7 @@ public class TransactionsController {
 
     private final TransactionService transactionService;
 
-    @Tag(name = "Add transactions", description = "This API records the transactions user have entered")
+    @Tag(name = "Transaction", description = "This API records the transactions user have entered")
     @PostMapping("/addTransaction")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
@@ -40,7 +40,7 @@ public class TransactionsController {
     }
 
 
-    @Tag(name = "Transaction Summary", description = "This API records the transactions summaries for user")
+    @Tag(name = "Transaction", description = "This API records the transactions summaries for user")
     @PostMapping("/transactionSummary")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
@@ -58,7 +58,7 @@ public class TransactionsController {
     }
 
 
-    @Tag(name = "Search Transaction Summaries", description = "This API searches the transactions summaries for user")
+    @Tag(name = "Transaction", description = "This API searches the transactions summaries for user")
     @PostMapping("/transactionSummarySearch")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),

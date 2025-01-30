@@ -28,14 +28,14 @@ public class Income {
     @Column(name = "source_name", length = 100, nullable = false)
     private String sourceName;
 
-    @Column(name = "type", length = 100, nullable = false)
-    private String type;
-
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
     @Column(name = "description", length = 100)
     private String description;
+
+    @Column(name = "income_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime incomeDate;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
@@ -43,11 +43,4 @@ public class Income {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "frequency", nullable = false)
-//    private Frequency frequency;
-//
-//    public enum Frequency {
-//        DAILY, WEEKLY, MONTHLY, YEARLY
-//    }
 }

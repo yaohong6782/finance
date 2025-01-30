@@ -1,6 +1,5 @@
 package com.rundown.financeTracking.service;
 
-import com.rundown.financeTracking.entity.Categories;
 import com.rundown.financeTracking.entity.Transaction;
 import com.rundown.financeTracking.entity.User;
 import com.rundown.financeTracking.exceptions.CustomException;
@@ -28,7 +27,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

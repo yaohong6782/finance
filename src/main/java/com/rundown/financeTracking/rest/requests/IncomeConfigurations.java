@@ -8,10 +8,10 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 public final class IncomeConfigurations {
-    private String username;
-    private String sourceName;
-    private String type;
+    private String userId;
+    private String source;
     private String amount;
     private String description;
     private String incomeDate;
+    private String updatedAt;
 }
