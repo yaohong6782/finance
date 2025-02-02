@@ -2,7 +2,9 @@ package com.rundown.financeTracking.controller;
 
 import com.rundown.financeTracking.exceptions.CustomException;
 import com.rundown.financeTracking.rest.dtos.IncomeDTO;
+import com.rundown.financeTracking.rest.dtos.UserDTO;
 import com.rundown.financeTracking.rest.requests.IncomeConfigurations;
+import com.rundown.financeTracking.rest.responses.finances.FinanceSetting;
 import com.rundown.financeTracking.service.FinanceService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -16,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @Slf4j
 @AllArgsConstructor
 @RestController
@@ -25,17 +25,32 @@ import java.util.List;
 public class FinancesController {
     private final FinanceService financeService;
 
-    @Tag(name = "Setting income configurations", description = "This API configures user's income settings")
+    @Tag(name = "Finances", description = "This API configures user's income settings")
     @PostMapping("/setIncome")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
             @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
             @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
-    public ResponseEntity<IncomeDTO> setIncome(@RequestBody IncomeConfigurations incomeConfigurations) throws CustomException {
+    public ResponseEntity<IncomeDTO> setIncome(@RequestBody IncomeConfigurations incomeConfigurations) {
 
         log.info("Income configurations : {} ", incomeConfigurations);
         IncomeDTO incomeDTO = financeService.saveIncomeSettings(incomeConfigurations);
-        return new ResponseEntity<>(incomeDTO, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(incomeDTO, HttpStatus.OK);
+    }
+
+    @Tag(name = "Finances", description = "This API retrieves finance settings")
+    @PostMapping("/retrieveSettings")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
+            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    public ResponseEntity<FinanceSetting> retrieveAllSettings(@RequestBody UserDTO userDTO) {
+
+        log.info("Users configurations : {} ", userDTO);
+        FinanceSetting financeSetting = financeService.financeSettings(userDTO);
+
+        return new ResponseEntity<>(financeSetting,HttpStatus.OK);
     }
 }

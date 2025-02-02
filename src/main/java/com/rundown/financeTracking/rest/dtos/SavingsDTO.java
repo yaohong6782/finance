@@ -6,21 +6,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class IncomeDTO {
+public class SavingsDTO {
     @JsonIgnore
     private UserDTO userDTO;
-    private String sourceName;
-    private BigDecimal amount;
-    private String description;
-    private LocalDate incomeDate;
+
+    private LocalDate monthYear;
+    private String totalIncome;
+    private String totalExpenses;
+    private String savings;
     private LocalDate createdAt;
-    private LocalDate updatedAt;
-    private Boolean recurring;
 }

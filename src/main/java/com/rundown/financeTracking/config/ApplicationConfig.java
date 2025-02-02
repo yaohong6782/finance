@@ -1,7 +1,6 @@
 package com.rundown.financeTracking.config;
 
 
-//import com.container.bottomup.repository.StudentRepository;
 import com.rundown.financeTracking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,4 +46,5 @@ public class ApplicationConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

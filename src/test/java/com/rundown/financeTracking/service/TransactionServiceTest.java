@@ -78,6 +78,10 @@ public class TransactionServiceTest {
     }
 
     @Test
+    public void testAddTransaction_UserNotFound() {
+        String username = "NotFound";
+    }
+    @Test
     public void testAddTransaction() {
         User mockUser = new User();
         mockUser.setUsername("test");

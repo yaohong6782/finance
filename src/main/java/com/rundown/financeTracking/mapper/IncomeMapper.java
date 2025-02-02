@@ -8,12 +8,21 @@ import org.mapstruct.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface IncomeMapper {
 
     @Mapping(source="userDTO", target="user")
     Income incomeDTOtoIncome(IncomeDTO incomeDTO);
+
+    @Mapping(target="userDTO", ignore = true)
+    @Mapping(target = "userDTO.password" , ignore = true)
+    @Mapping(target="userDTO.userId", ignore = true)
+    IncomeDTO incomeToIncomeDTO(Income income);
+
+    @Mapping(target="userDTO", ignore = true)
+    List<IncomeDTO> incomeListToIncomeDTOList(List<Income> income);
 
     @Mapping(source = "source", target = "sourceName")
     @Mapping(source = "amount", target = "amount")

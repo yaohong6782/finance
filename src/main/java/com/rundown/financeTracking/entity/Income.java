@@ -43,4 +43,7 @@ public class Income {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
 
+    @Column(name = "recurring")
+    private Boolean recurring;
+
 }

@@ -37,6 +37,6 @@ public class Savings {
     @Column(name = "savings")
     private BigDecimal savings;
 
-    @Column(name = "created_id")
+    @Column(name = "created_at")
     private LocalDate createdAt;
 }
