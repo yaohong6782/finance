@@ -1,6 +1,6 @@
 package com.rundown.financeTracking.rest.dtos;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,13 +12,13 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SavingsDTO {
-    @JsonIgnore
     private UserDTO userDTO;
-
-    private LocalDate monthYear;
+    private String monthYear;
     private String totalIncome;
     private String totalExpenses;
-    private String savings;
+    private String savingsAmount;
     private LocalDate createdAt;
+    private String savingsGoal;
 }

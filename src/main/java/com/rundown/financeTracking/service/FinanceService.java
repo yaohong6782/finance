@@ -15,7 +15,9 @@ import com.rundown.financeTracking.rest.dtos.IncomeDTO;
 import com.rundown.financeTracking.rest.dtos.SavingsDTO;
 import com.rundown.financeTracking.rest.dtos.UserDTO;
 import com.rundown.financeTracking.rest.requests.IncomeConfigurations;
+import com.rundown.financeTracking.rest.requests.SavingConfigurations;
 import com.rundown.financeTracking.rest.responses.finances.FinanceSetting;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -28,8 +30,10 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Builder
@@ -56,6 +60,11 @@ public class FinanceService {
     @Autowired
     private UserMapper userMapper;
 
+    private LocalDate currentDate = LocalDate.now();
+    private int currentYear = currentDate.getYear();
+    private Month currentMonth = currentDate.getMonth();
+
+
     public IncomeDTO saveIncomeSettings(IncomeConfigurations incomeConfigurations) {
         if (incomeConfigurations.getIncomeDate().isBlank()) {
             ZonedDateTime currentDateTime = ZonedDateTime.now();
@@ -66,7 +75,7 @@ public class FinanceService {
                     .withNano(0);
             incomeConfigurations.setIncomeDate(incomeDate.toString());
         }
-        log.info("Income configurations : {} " , incomeConfigurations);
+        log.info("Income configurations : {} ", incomeConfigurations);
         User user = userRepository.findById(Long.valueOf(incomeConfigurations.getUserId()))
                 .orElseThrow(() ->
                         new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
@@ -75,7 +84,6 @@ public class FinanceService {
 
         UserDTO userDTO = userMapper.mapUserToUserDTO(user);
 
-
         IncomeDTO incomeDTO = incomeMapper.incomeConfigurationToIncomeDTO(incomeConfigurations);
         incomeDTO.setUserDTO(userDTO);
         incomeDTO.setRecurring(incomeConfigurations.getSource().equalsIgnoreCase(CommonVariables.INCOME_SOURCE_CORPORATE_JOB));
@@ -83,9 +91,22 @@ public class FinanceService {
         log.info("income dto : {} ", incomeDTO);
 
         Income income = incomeMapper.incomeDTOtoIncome(incomeDTO);
-        log.info("income : {} " , income);
+        log.info("income : {} ", income);
 
-        Income savedIncome  = incomeRepository.save(income);
+        if (income.getSourceName().equalsIgnoreCase(CommonVariables.INCOME_SOURCE_CORPORATE_JOB)) {
+            // Update corporate instead of creating new record
+            Optional<Income> existingIncome = incomeRepository.findBySourceName(CommonVariables.INCOME_SOURCE_CORPORATE_JOB);
+            if (existingIncome.isPresent()) {
+                log.info("it exist lets update it");
+                Income incomeToUpdate = existingIncome.get();
+                log.info("income to update : {} ", incomeToUpdate);
+                BigDecimal incomeAmount = new BigDecimal(incomeConfigurations.getAmount());
+                incomeToUpdate.setAmount(incomeAmount);
+                Income updateSavedIncome = incomeRepository.save(incomeToUpdate);
+            }
+        } else {
+            Income savedIncome = incomeRepository.save(income);
+        }
 
         userDTO.setUserId(null);
         incomeDTO.setUserDTO(userDTO);
@@ -93,12 +114,95 @@ public class FinanceService {
         return incomeDTO;
     }
 
+    @Transactional
+    public SavingsDTO saveSavingSetting(SavingConfigurations savingConfigurations) {
+
+        User user = userRepository.findById(Long.valueOf(savingConfigurations.getUserId()))
+                .orElseThrow(() ->
+                        new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
+
+        log.info("user : {} ", user);
+        Long userTotalSavings = savingRepository.findUserTotalSavings(user);
+        log.info("user total savings : {} ", userTotalSavings);
+
+        YearMonth currentYearMonth = YearMonth.now();
+        int month = currentYearMonth.getMonthValue();
+
+        // YEAR = 2025, MONTH = 1 to have data for testing
+        Long currentMonthExpenses = savingRepository.findCurrentMonthTotalExpenses(user, currentYear, 1);
+        log.info("current month total expenses : {} ", currentMonthExpenses);
+
+        List<Income> income = incomeRepository.findAllByUser(user);
+        List<IncomeDTO> incomeDTOList = incomeMapper.incomeListToIncomeDTOList(income);
+        BigDecimal currentTotalIncome = totalIncome(incomeDTOList);
+        Long currentTotalIncomeLong = currentTotalIncome.longValue();
+
+        log.info("income dto list : {} ", incomeDTOList);
+        log.info("current total income : {} ", currentTotalIncome);
+
+        Long savingsSaved = currentTotalIncomeLong - currentMonthExpenses;
+        log.info("total savings ; {} ", savingsSaved);
+
+        SavingsDTO savingsDTO = SavingsDTO.builder()
+                .userDTO(userMapper.mapUserToUserDTO(user))
+                .monthYear(String.valueOf(YearMonth.now()))
+//                .monthYear(String.valueOf(YearMonth.of(2025, 3)))
+                .totalExpenses(String.valueOf(currentMonthExpenses))
+                .createdAt(YearMonth.now().atEndOfMonth())
+//                .createdAt(YearMonth.of(2025, 3).atEndOfMonth())
+                .savingsAmount(String.valueOf(savingsSaved))
+                .savingsGoal(savingConfigurations.getAmount())
+                .build();
+
+//        Optional<Savings> existingSavings = savingRepository.findByUserIdAndMonthYear(user.getUserId(), String.valueOf("2025-03"));
+        Optional<Savings> existingSavings = savingRepository.findByUserIdAndMonthYear(user.getUserId(), String.valueOf(YearMonth.now()));
+
+        if (existingSavings.isPresent()) {
+            log.info("existing savings : {} ", existingSavings);
+            Savings savingsToUpdate = existingSavings.get();
+
+            log.info("savings to update monthyear : {} current month year : {}",
+                    savingsToUpdate.getMonthYear(), String.valueOf(YearMonth.now()));
+
+            if (savingsToUpdate.getMonthYear().equals(String.valueOf(YearMonth.now()))) {
+//            if (savingsToUpdate.getMonthYear().equals(String.valueOf(YearMonth.of(2025,3)))) {
+                int updatedSavings = savingRepository.updateSavings(
+                        String.valueOf(savingsToUpdate.getTotalExpenses()),
+                        String.valueOf(savingConfigurations.getAmount()),
+                        savingsToUpdate.getCreatedAt(),
+                        savingsToUpdate.getUser().getUserId(),
+                        savingsToUpdate.getMonthYear()
+                );
+
+                if (updatedSavings > 0) {
+                    log.info("Successfully updated your savings for the month");
+                } else {
+                    log.info("No savings record found to update");
+                }
+            }
+        } else {
+            log.info("Saving new goals for new month");
+            Savings savings = savingsMapper.savingsDTOToSavings(savingsDTO);
+            log.info("attempting to save : {} ", savings);
+            try {
+                savingRepository.save(savings);
+                log.info("Successfully recorded your new savings goals");
+            } catch (Exception e) {
+                log.error("Issue updating your savings");
+            }
+            log.info("savings : {} ", savings);
+        }
+
+        return savingsDTO;
+    }
+
     public FinanceSetting financeSettings(UserDTO userDTO) {
         User user = new User();
         user.setUserId(userDTO.getUserId());
 
         List<Savings> savings = savingRepository.findAllByUser(user);
-        List<SavingsDTO> savingsDTOList = savingsMapper.incomeListToIncomeDTOList(savings); ;
+        List<SavingsDTO> savingsDTOList = savingsMapper.incomeListToIncomeDTOList(savings);
+        ;
         log.info("retrieved savings {},  saving DTO list : {} ", savings, savingsDTOList);
 
         List<Income> income = incomeRepository.findAllByUser(user);
@@ -106,8 +210,11 @@ public class FinanceService {
         log.info("retrieved income : {} ", income);
         log.info("Income DTO List : {} ", incomeDTOList);
 
-        BigDecimal currentMonthTotalIncome = totalIncomeForMonth(incomeDTOList);
+        BigDecimal currentMonthTotalIncome = totalIncomeForCurrentMonth(incomeDTOList);
         log.info("current month income : {} ", currentMonthTotalIncome);
+        BigDecimal totalIncome = totalIncome(incomeDTOList);
+        log.info("total income : {} ", totalIncome);
+
 
         return FinanceSetting.builder()
                 .incomeDTO(incomeDTOList)
@@ -116,11 +223,14 @@ public class FinanceService {
                 .build();
     }
 
-    public BigDecimal totalIncomeForMonth(List<IncomeDTO> incomeDTOList) {
-        LocalDate currentDate = LocalDate.now();
-        int currentYear = currentDate.getYear();
-        Month currentMonth = currentDate.getMonth();
-        log.info("current month : {}" , currentMonth);
+    private BigDecimal totalIncome(List<IncomeDTO> incomeDTOList) {
+        return incomeDTOList.stream()
+                .map(IncomeDTO::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal totalIncomeForCurrentMonth(List<IncomeDTO> incomeDTOList) {
+        log.info("current month : {}", currentMonth);
 
         return incomeDTOList.stream()
                 .filter(income -> isIncomeInSameMonth(income.getIncomeDate(), currentYear, currentMonth))
@@ -128,7 +238,7 @@ public class FinanceService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public boolean isIncomeInSameMonth(LocalDate incomeDate, int year, Month month) {
+     boolean isIncomeInSameMonth(LocalDate incomeDate, int year, Month month) {
         return incomeDate != null && incomeDate.getYear() == year && incomeDate.getMonth() == month;
     }
 }

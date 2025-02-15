@@ -26,17 +26,17 @@ public class Savings {
     private User user;
 
     @Column(name = "month_year")
-    private LocalDate monthYear;
-
-    @Column(name = "total_income", nullable = false)
-    private BigDecimal totalIncome;
+    private String monthYear;
 
     @Column(name = "total_expenses")
     private BigDecimal totalExpenses;
 
-    @Column(name = "savings")
-    private BigDecimal savings;
+    @Column(name = "savings_amount")
+    private BigDecimal savingsAmount;
 
     @Column(name = "created_at")
     private LocalDate createdAt;
+
+    @Column(name = "savings_goal")
+    private BigDecimal savingsGoal;
 }

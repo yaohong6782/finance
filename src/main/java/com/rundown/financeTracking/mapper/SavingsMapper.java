@@ -18,4 +18,8 @@ public interface SavingsMapper {
     @Mapping(target="userDTO", ignore = true)
     List<SavingsDTO> incomeListToIncomeDTOList(List<Savings> savings);
 
+    @Mapping(source="userDTO", target="user")
+    @Mapping(source="savingsAmount", target="savingsAmount")
+    Savings savingsDTOToSavings(SavingsDTO savingsDTO);
+
 }

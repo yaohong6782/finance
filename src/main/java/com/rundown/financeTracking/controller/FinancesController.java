@@ -1,9 +1,10 @@
 package com.rundown.financeTracking.controller;
 
-import com.rundown.financeTracking.exceptions.CustomException;
 import com.rundown.financeTracking.rest.dtos.IncomeDTO;
+import com.rundown.financeTracking.rest.dtos.SavingsDTO;
 import com.rundown.financeTracking.rest.dtos.UserDTO;
 import com.rundown.financeTracking.rest.requests.IncomeConfigurations;
+import com.rundown.financeTracking.rest.requests.SavingConfigurations;
 import com.rundown.financeTracking.rest.responses.finances.FinanceSetting;
 import com.rundown.financeTracking.service.FinanceService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,6 +38,20 @@ public class FinancesController {
         log.info("Income configurations : {} ", incomeConfigurations);
         IncomeDTO incomeDTO = financeService.saveIncomeSettings(incomeConfigurations);
         return new ResponseEntity<>(incomeDTO, HttpStatus.OK);
+    }
+
+    @Tag(name = "Finances", description = "This API configures user's saving settings")
+    @PostMapping("/setSaving")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
+            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error")
+    })
+    public ResponseEntity<SavingsDTO> setSaving(@RequestBody SavingConfigurations savingConfigurations) {
+
+        log.info("Savings configurations : {} ", savingConfigurations);
+        SavingsDTO savingsDTO = financeService.saveSavingSetting(savingConfigurations);
+        return new ResponseEntity<>(savingsDTO, HttpStatus.OK);
     }
 
     @Tag(name = "Finances", description = "This API retrieves finance settings")
