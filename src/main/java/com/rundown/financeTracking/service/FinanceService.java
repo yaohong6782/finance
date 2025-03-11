@@ -28,10 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.YearMonth;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.Optional;
 
@@ -122,6 +119,8 @@ public class FinanceService {
                         new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
 
         log.info("user : {} ", user);
+        UserDTO userDTO = userMapper.mapUserToUserDTO(user);
+
         Long userTotalSavings = savingRepository.findUserTotalSavings(user);
         log.info("user total savings : {} ", userTotalSavings);
 
@@ -144,17 +143,14 @@ public class FinanceService {
         log.info("total savings ; {} ", savingsSaved);
 
         SavingsDTO savingsDTO = SavingsDTO.builder()
-                .userDTO(userMapper.mapUserToUserDTO(user))
+                .userDTO(userDTO)
                 .monthYear(String.valueOf(YearMonth.now()))
-//                .monthYear(String.valueOf(YearMonth.of(2025, 3)))
                 .totalExpenses(String.valueOf(currentMonthExpenses))
                 .createdAt(YearMonth.now().atEndOfMonth())
-//                .createdAt(YearMonth.of(2025, 3).atEndOfMonth())
                 .savingsAmount(String.valueOf(savingsSaved))
                 .savingsGoal(savingConfigurations.getAmount())
                 .build();
 
-//        Optional<Savings> existingSavings = savingRepository.findByUserIdAndMonthYear(user.getUserId(), String.valueOf("2025-03"));
         Optional<Savings> existingSavings = savingRepository.findByUserIdAndMonthYear(user.getUserId(), String.valueOf(YearMonth.now()));
 
         if (existingSavings.isPresent()) {
@@ -162,20 +158,28 @@ public class FinanceService {
             Savings savingsToUpdate = existingSavings.get();
 
             log.info("savings to update monthyear : {} current month year : {}",
-                    savingsToUpdate.getMonthYear(), String.valueOf(YearMonth.now()));
+                    savingsToUpdate.getMonthYear(), YearMonth.now());
 
             if (savingsToUpdate.getMonthYear().equals(String.valueOf(YearMonth.now()))) {
-//            if (savingsToUpdate.getMonthYear().equals(String.valueOf(YearMonth.of(2025,3)))) {
+                log.info("saving this date : {} ", String.valueOf(LocalDate.now()));
                 int updatedSavings = savingRepository.updateSavings(
                         String.valueOf(savingsToUpdate.getTotalExpenses()),
                         String.valueOf(savingConfigurations.getAmount()),
-                        savingsToUpdate.getCreatedAt(),
+                        LocalDate.now(),
                         savingsToUpdate.getUser().getUserId(),
                         savingsToUpdate.getMonthYear()
                 );
 
                 if (updatedSavings > 0) {
                     log.info("Successfully updated your savings for the month");
+                      return SavingsDTO.builder()
+                            .userDTO(userDTO)
+                            .monthYear(String.valueOf(YearMonth.now()))
+                            .totalExpenses(String.valueOf(savingsToUpdate.getTotalExpenses()))
+                            .createdAt(LocalDate.now())
+                            .savingsAmount(String.valueOf(savingConfigurations.getAmount()))
+                            .savingsGoal(savingConfigurations.getAmount())
+                            .build();
                 } else {
                     log.info("No savings record found to update");
                 }
@@ -223,6 +227,7 @@ public class FinanceService {
                 .build();
     }
 
+
     private BigDecimal totalIncome(List<IncomeDTO> incomeDTOList) {
         return incomeDTOList.stream()
                 .map(IncomeDTO::getAmount)
@@ -241,4 +246,5 @@ public class FinanceService {
      boolean isIncomeInSameMonth(LocalDate incomeDate, int year, Month month) {
         return incomeDate != null && incomeDate.getYear() == year && incomeDate.getMonth() == month;
     }
+
 }

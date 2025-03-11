@@ -1,7 +1,6 @@
 package com.rundown.financeTracking.repository;
 
 import com.rundown.financeTracking.entity.Transaction;
-import com.rundown.financeTracking.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,10 +14,12 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
     @Query("SELECT t from Transaction t where t.user.userId = :userId")
+    List<Transaction> findUserTransactionByIdWhereClause(String userId, Pageable pageable);
+
+    @Query("SELECT t from Transaction t JOIN t.user u where u.userId = :userId")
     List<Transaction> findUserTransactionById(String userId, Pageable pageable);
 
-
-    @Query("SELECT t from Transaction t where t.user.userId = :userId")
+    @Query("SELECT t from Transaction t JOIN t.user u where u.userId = :userId")
     Page<Transaction> findUserTransactionByIdPagination(String userId, Pageable pageable);
 
     @Query("Select t from Transaction t where t.user.userId = :userId " +
@@ -28,8 +29,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                                                 @Param("category") String category,
                                                                 @Param("amountMax") Double amountMax,
                                                                 Pageable pageable);
-
-    @Query("SELECT u from User u where u.username = :username")
-    User findUserByName(String username);
 
 }

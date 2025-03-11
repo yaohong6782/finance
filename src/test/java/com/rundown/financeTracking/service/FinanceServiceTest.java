@@ -414,16 +414,21 @@ public class FinanceServiceTest {
 
         Long userSavings = 100L;
 
+        YearMonth currentMonth = YearMonth.now();  // Keep this consistent
+        String currentMonthString = currentMonth.toString();
+
         Savings existingSavings = Savings.builder()
                 .user(user)
-                .monthYear(String.valueOf(YearMonth.of(2025,2)))
+                .monthYear(currentMonthString)
+                .createdAt(LocalDate.of(2025,3,5))
                 .totalExpenses(new BigDecimal(5000L))
                 .build();
+
 
         when(userRepository.findById(Long.valueOf(savingConfigurations.getUserId()))).thenReturn(Optional.of(user));
         when(savingRepository.findUserTotalSavings(user)).thenReturn(userSavings);
 
-        when(savingRepository.findByUserIdAndMonthYear(1L, String.valueOf(YearMonth.of(2025,2))))
+        when(savingRepository.findByUserIdAndMonthYear(1L, currentMonthString))
                 .thenReturn(Optional.of(existingSavings));
 
         when(savingRepository.updateSavings(
@@ -435,6 +440,7 @@ public class FinanceServiceTest {
         )).thenReturn(1);
 
         SavingsDTO savingsDTO = financeService.saveSavingSetting(savingConfigurations);
+
 
         verify(userRepository, times(1)).findById(1L);
         verify(savingRepository).findUserTotalSavings(user);

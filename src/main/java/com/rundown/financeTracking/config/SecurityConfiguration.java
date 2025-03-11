@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 @AllArgsConstructor
 @Configuration
 @EnableWebSecurity
+@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -38,16 +40,17 @@ public class SecurityConfiguration {
                         sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(registry -> registry
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**")
-                        .permitAll()
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/*").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/*").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/user/**").permitAll() // Allow access to this endpoint
-                        .requestMatchers(HttpMethod.POST, "/transactions/**").permitAll() // Allow access to this endpoint
-                        .requestMatchers(HttpMethod.POST, "/finances/**").permitAll() // Allow access to this endpoint
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**")
+                                .permitAll()
+                                .requestMatchers("/").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/*").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/finances/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/*").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/user/**").permitAll() // Allow access to this endpoint
+                                .requestMatchers(HttpMethod.POST, "/transactions/**").permitAll() // Allow access to this endpoint
+                                .requestMatchers(HttpMethod.POST, "/finances/**").permitAll() // Allow access to this endpoint
 //                        .requestMatchers(HttpMethod.POST, "/**").permitAll() // Allow access to this endpoint
-                        .anyRequest().authenticated()
+                                .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
         return http.build();

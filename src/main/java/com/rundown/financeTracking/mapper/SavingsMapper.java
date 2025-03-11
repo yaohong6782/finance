@@ -1,8 +1,6 @@
 package com.rundown.financeTracking.mapper;
 
-import com.rundown.financeTracking.entity.Income;
 import com.rundown.financeTracking.entity.Savings;
-import com.rundown.financeTracking.rest.dtos.IncomeDTO;
 import com.rundown.financeTracking.rest.dtos.SavingsDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

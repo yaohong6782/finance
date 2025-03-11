@@ -1,10 +1,12 @@
 package com.rundown.financeTracking.exceptions;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
 
+@EqualsAndHashCode(callSuper = true)
 @Slf4j
 @Data
 public class CustomException extends RuntimeException {
