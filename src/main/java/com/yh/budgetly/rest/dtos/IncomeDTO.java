@@ -15,7 +15,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class IncomeDTO {
-//    @JsonIgnore
     private UserDTO userDTO;
     private String sourceName;
     private BigDecimal amount;

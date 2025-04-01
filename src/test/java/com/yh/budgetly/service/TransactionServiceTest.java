@@ -134,8 +134,7 @@ public class TransactionServiceTest {
 
         PageRequest pageRequest = PageRequest.of(0,10);
         when(transactionRepository.findUserTransactionById(
-                String.valueOf(mockUser.getUserId()),
-                pageRequest
+                String.valueOf(mockUser.getUserId())
         )).thenReturn(mockTransactionList);
 
         when(transactionMapper.toTransactionDTOList(mockTransactionList))
@@ -146,8 +145,7 @@ public class TransactionServiceTest {
 
         assertEquals(mockTransactionDTOList.size(), mockTransactionList.size());
         verify(transactionRepository, times(1)).findUserTransactionById(
-                String.valueOf(mockUser.getUserId()),
-                pageRequest
+                String.valueOf(mockUser.getUserId())
         );
         verify(transactionMapper, times(1)).toTransactionDTOList(mockTransactionList);
     }

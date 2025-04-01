@@ -310,7 +310,7 @@ public class FinanceServiceTest {
         FinanceSetting mockResponse = FinanceSetting.builder()
                 .incomeDTO(mockIncomeDTO)
                 .savingsDTO(mockSavingsDTO)
-                .totalSumCurrentMonth(String.valueOf(0))
+                .totalIncomeSumCurrentMonth(String.valueOf(0))
                 .build();
         FinanceSetting actualResponse = financeService.financeSettings(userDTO);
 
@@ -370,7 +370,7 @@ public class FinanceServiceTest {
         FinanceSetting result = financeService.financeSettings(userDTO);
 
         // Assert
-        assertEquals(new BigDecimal("1000"), new BigDecimal(result.getTotalSumCurrentMonth())); // Only income1 should be counted for current month
+        assertEquals(new BigDecimal("1000"), new BigDecimal(result.getTotalIncomeSumCurrentMonth())); // Only income1 should be counted for current month
         verify(savingRepository, times(1)).findAllByUser(mockUser);
         verify(incomeRepository, times(1)).findAllByUser(mockUser);
     }

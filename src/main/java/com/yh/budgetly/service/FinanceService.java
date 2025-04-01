@@ -63,7 +63,7 @@ public class FinanceService {
 
 
     public IncomeDTO saveIncomeSettings(IncomeConfigurations incomeConfigurations) {
-        if (incomeConfigurations.getIncomeDate().isBlank()) {
+        if (incomeConfigurations.getIncomeDate() == null || incomeConfigurations.getIncomeDate().isBlank()) {
             ZonedDateTime currentDateTime = ZonedDateTime.now();
             ZonedDateTime incomeDate = currentDateTime.withDayOfMonth(25)
                     .withHour(0)
@@ -92,6 +92,7 @@ public class FinanceService {
 
         if (income.getSourceName().equalsIgnoreCase(CommonVariables.INCOME_SOURCE_CORPORATE_JOB)) {
             // Update corporate instead of creating new record
+            log.info("found a corporate job");
             Optional<Income> existingIncome = incomeRepository.findBySourceName(CommonVariables.INCOME_SOURCE_CORPORATE_JOB);
             if (existingIncome.isPresent()) {
                 log.info("it exist lets update it");
@@ -100,9 +101,14 @@ public class FinanceService {
                 BigDecimal incomeAmount = new BigDecimal(incomeConfigurations.getAmount());
                 incomeToUpdate.setAmount(incomeAmount);
                 Income updateSavedIncome = incomeRepository.save(incomeToUpdate);
+            } else {
+                log.info("saving a corporate job");
+                Income savedIncome = incomeRepository.save(income);
+                return incomeMapper.incomeToIncomeDTO(savedIncome);
             }
-        } else {
-            Income savedIncome = incomeRepository.save(income);
+        }
+        else {
+            incomeRepository.save(income);
         }
 
         userDTO.setUserId(null);
@@ -223,7 +229,7 @@ public class FinanceService {
         return FinanceSetting.builder()
                 .incomeDTO(incomeDTOList)
                 .savingsDTO(savingsDTOList)
-                .totalSumCurrentMonth(String.valueOf(currentMonthTotalIncome))
+                .totalIncomeSumCurrentMonth(String.valueOf(currentMonthTotalIncome))
                 .build();
     }
 

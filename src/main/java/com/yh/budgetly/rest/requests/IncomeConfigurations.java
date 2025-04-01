@@ -7,7 +7,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public final class IncomeConfigurations {
+public class IncomeConfigurations {
     private String userId;
     private String source;
     private String amount;

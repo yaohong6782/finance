@@ -16,5 +16,5 @@ import java.util.List;
 public class FinanceSetting {
     private List<IncomeDTO> incomeDTO;
     private List<SavingsDTO> savingsDTO;
-    private String totalSumCurrentMonth;
+    private String totalIncomeSumCurrentMonth;
 }

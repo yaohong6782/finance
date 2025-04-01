@@ -48,6 +48,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.POST, "/*").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/user/**").permitAll() // Allow access to this endpoint
                                 .requestMatchers(HttpMethod.POST, "/transactions/**").permitAll() // Allow access to this endpoint
+                                .requestMatchers(HttpMethod.POST, "/dashboard/**").permitAll() // Allow access to this endpoint
                                 .requestMatchers(HttpMethod.POST, "/finances/**").permitAll() // Allow access to this endpoint
 //                        .requestMatchers(HttpMethod.POST, "/**").permitAll() // Allow access to this endpoint
                                 .anyRequest().authenticated()

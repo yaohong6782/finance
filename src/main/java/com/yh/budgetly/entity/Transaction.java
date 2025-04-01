@@ -40,4 +40,7 @@ public class Transaction {
     @Column(name = "created_at",insertable = false,
             updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDate createdAt;
+
+    @OneToOne(mappedBy = "transaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Files file;
 }

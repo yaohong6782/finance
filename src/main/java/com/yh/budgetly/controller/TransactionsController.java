@@ -51,7 +51,7 @@ public class TransactionsController {
     })
     public ResponseEntity<Page<TransactionDTO>> transactionSummary(@RequestBody TransactionSummaryFields transactionSummaryFields,
                                                                    @RequestParam(defaultValue = "0") int page,
-                                                                   @RequestParam(defaultValue = "2") int size) throws CustomException {
+                                                                   @RequestParam(defaultValue = "10") int size) throws CustomException {
         String username = transactionSummaryFields.getUsername();
         log.info("Transaction summary for user : {} , page : {} , size : {} " , username, page, size);
         Page<TransactionDTO> transactionDTOList = transactionService.transactionPageSummary(username, page, size);
@@ -69,8 +69,10 @@ public class TransactionsController {
     })
     public ResponseEntity<Page<TransactionDTO>> searchTransactionSummary(@RequestBody TransactionSearchFields transactionSearchFields,
                                                      @RequestParam(defaultValue = "0") int page,
-                                                     @RequestParam(defaultValue = "2") int size) throws CustomException {
+                                                     @RequestParam(defaultValue = "10") int size) throws CustomException {
 
+        log.info("Transaction Summary Search triggered");
+        log.info("Request to search : {} " , transactionSearchFields);
         Page<TransactionDTO> transactionDTOS = transactionService.searchTransactionPageSummary(transactionSearchFields, page, size);
         return new ResponseEntity<>(transactionDTOS, HttpStatus.OK);
     }

@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -14,11 +13,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TransactionDTO {
-    private BigDecimal amount;
-    private CategoriesDTO categoriesDTO;
-    private String description;
-    private LocalDate transactionDate;
-    private LocalDate createdAt;
-    private FileDTO fileDTO;
+public class FileDTO {
+    private String fileName;
+    private byte[] fileData;
+    private LocalDate uploadedAt;
 }

@@ -2,11 +2,13 @@ package com.yh.budgetly.service;
 
 import com.yh.budgetly.constants.CommonVariables;
 import com.yh.budgetly.entity.Categories;
+import com.yh.budgetly.entity.Files;
 import com.yh.budgetly.entity.Transaction;
 import com.yh.budgetly.entity.User;
 import com.yh.budgetly.exceptions.CustomException;
 import com.yh.budgetly.mapper.TransactionMapper;
 import com.yh.budgetly.repository.CategoryRepository;
+import com.yh.budgetly.repository.FileRepository;
 import com.yh.budgetly.repository.TransactionRepository;
 import com.yh.budgetly.repository.UserRepository;
 import com.yh.budgetly.rest.dtos.TransactionDTO;
@@ -16,7 +18,6 @@ import com.yh.budgetly.rest.requests.TransactionSearchFields;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -34,9 +35,8 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
-
-    @Autowired
-    private TransactionMapper transactionMapper;
+    private final FileRepository fileRepository;
+    private final TransactionMapper transactionMapper;
 
     public List<TransactionDTO> addTransaction(TransactionRequestFields transactionRequestFields) {
         log.info("Processing transactions to be added : {} " , transactionRequestFields);
@@ -60,26 +60,37 @@ public class TransactionService {
                 return newCategory;
             });
 
+            if (!categoriesList.isEmpty()) {
+                categoryRepository.saveAll(categoriesList);
+            }
+
+
             Transaction transaction = Transaction.builder()
                     .user(user)
                     .categories(categories)
                     .amount(transField.getAmount())
-                    .transactionDate(LocalDate.parse(transField.getTransactionDate()))
+                    .transactionDate(LocalDate.now())
                     .description(transField.getDescription())
                     .build();
+
+
+            Files file = transField.getFiles();
+            if (file != null) {
+                file.setTransaction(transaction);
+                file.setUploadedAt(LocalDate.now());
+                log.info("file info: {}", file);
+//                fileRepository.save(file);
+                transaction.setFile(file);
+            }
             transactionsList.add(transaction);
+            transactionRepository.saveAll(transactionsList);
         }
-
-        if (!categoriesList.isEmpty()) {
-           categoryRepository.saveAll(categoriesList);
-        }
-
-        transactionRepository.saveAll(transactionsList);
 
         List<TransactionDTO> transactionDTOS = transactionMapper.toTransactionDTOList(transactionsList);
 
         return transactionDTOS;
     }
+
 
     public List<TransactionDTO> transactionSummary(String username) {
         User user = userRepository.findByUsername(username)
@@ -89,7 +100,7 @@ public class TransactionService {
         String userId = String.valueOf(user.getUserId());
 
         PageRequest pageRequest = PageRequest.of(0,10);
-        List<Transaction> transactionList = transactionRepository.findUserTransactionById(userId, pageRequest);
+        List<Transaction> transactionList = transactionRepository.findUserTransactionById(userId);
         log.info("transaction list : {} " , transactionList);
 
         List<TransactionDTO> transactionDTOList = transactionMapper.toTransactionDTOList(transactionList);

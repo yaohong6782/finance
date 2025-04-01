@@ -15,12 +15,11 @@ public interface TransactionMapper {
     @Mapping(source = "transactionDate", target = "transactionDate")
     @Mapping(source = "createdAt", target = "createdAt")
     @Mapping(source = "categories", target = "categoriesDTO")
+    @Mapping(source = "file", target="fileDTO")
     TransactionDTO toTransactionDTO(Transaction transaction);
 
 
     List<TransactionDTO> toTransactionDTOList(List<Transaction> transactions);
-
-//    Page<TransactionDTO> toTransactionDTOList(Page<Transaction> transactions);
 
     default Page<TransactionDTO> toTransactionDTOPage(Page<Transaction> transactionPage) {
         return transactionPage.map(this::toTransactionDTO);

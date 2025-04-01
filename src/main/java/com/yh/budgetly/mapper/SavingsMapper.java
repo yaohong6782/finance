@@ -10,7 +10,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface SavingsMapper {
 
-    @Mapping(source="user", target="userDTO")
+    @Mapping(target="userDTO", ignore = true)
     SavingsDTO savingsToSavingsDTO(Savings savings);
 
     @Mapping(target="userDTO", ignore = true)
