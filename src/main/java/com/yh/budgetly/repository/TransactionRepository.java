@@ -1,6 +1,7 @@
 package com.yh.budgetly.repository;
 
 import com.yh.budgetly.entity.Transaction;
+import com.yh.budgetly.rest.responses.dashboard.MonthlyTotal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -54,4 +55,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("userId") String userId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    @Query(value = "SELECT EXTRACT(MONTH FROM t.transaction_date)::VARCHAR AS monthNum, SUM(t.amount) AS amountSpent " +
+            "FROM transactions t " +
+            "WHERE t.user_id::VARCHAR = :userId AND EXTRACT(YEAR FROM t.transaction_date) = :year " +
+            "GROUP BY monthNum ORDER BY monthNum", nativeQuery = true)
+    List<MonthlyTotal> findAllMonthAndTotalSpent(
+            @Param("userId") String userId,
+            @Param("year") int year);
+
 }

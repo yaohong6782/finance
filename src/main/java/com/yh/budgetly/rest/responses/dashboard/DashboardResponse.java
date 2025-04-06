@@ -16,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 public class DashboardResponse {
     private List<TransactionDTO> transactionDTO;
+    private List<MonthlyTotal> monthlyTotals;
     private SavingsDTO savingsDTO;
     private BigDecimal currentMonthExpenses;
 }

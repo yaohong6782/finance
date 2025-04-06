@@ -7,6 +7,7 @@ import com.yh.budgetly.entity.User;
 import com.yh.budgetly.exceptions.CustomException;
 import com.yh.budgetly.mapper.IncomeMapper;
 import com.yh.budgetly.mapper.SavingsMapper;
+import com.yh.budgetly.mapper.TransactionMapper;
 import com.yh.budgetly.mapper.UserMapper;
 import com.yh.budgetly.repository.IncomeRepository;
 import com.yh.budgetly.repository.SavingRepository;
@@ -30,6 +31,7 @@ import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -62,6 +64,9 @@ public class FinanceServiceTest {
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private TransactionMapper transactionMapper;
 
     @InjectMocks
     private FinanceService financeService;
@@ -96,6 +101,7 @@ public class FinanceServiceTest {
         Income existingIncome = new Income();
         existingIncome.setSourceName(CommonVariables.INCOME_SOURCE_CORPORATE_JOB);
         existingIncome.setUser(mockUser);
+        existingIncome.setIncomeDate(LocalDateTime.now());
         existingIncome.setAmount(new BigDecimal("50")); // Existing amount
 
         Income updatedIncome = new Income();
@@ -206,10 +212,12 @@ public class FinanceServiceTest {
         // Set up DTOs and entities
         IncomeDTO mockIncomeDTO = new IncomeDTO();
         mockIncomeDTO.setUserDTO(mockUserDTO);
+        mockIncomeDTO.setIncomeDate(LocalDate.now());
         mockIncomeDTO.setSourceName(source);
 
         Income mockIncome = new Income();
         mockIncome.setSourceName(source);
+        mockIncome.setIncomeDate(LocalDate.now().atStartOfDay());
         mockIncome.setUser(mockUser);
         mockIncome.setAmount(new BigDecimal(amount));
 

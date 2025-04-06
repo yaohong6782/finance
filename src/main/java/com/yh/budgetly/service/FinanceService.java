@@ -98,8 +98,20 @@ public class FinanceService {
                 log.info("it exist lets update it");
                 Income incomeToUpdate = existingIncome.get();
                 log.info("income to update : {} ", incomeToUpdate);
+
                 BigDecimal incomeAmount = new BigDecimal(incomeConfigurations.getAmount());
                 incomeToUpdate.setAmount(incomeAmount);
+
+                LocalDateTime currentDate = LocalDateTime.now();
+                LocalDateTime existingDate = incomeToUpdate.getIncomeDate();
+
+                if (existingDate != null && (existingDate.getMonth() != currentDate.getMonth() || existingDate.getYear() != currentDate.getYear())) {
+                    log.info("new income for the month");
+                    incomeToUpdate.setIncomeDate(currentDate);
+                } else {
+                    log.info("theres no new income for the month");
+                }
+
                 Income updateSavedIncome = incomeRepository.save(incomeToUpdate);
             } else {
                 log.info("saving a corporate job");
@@ -119,6 +131,8 @@ public class FinanceService {
 
     @Transactional
     public SavingsDTO saveSavingSetting(SavingConfigurations savingConfigurations) {
+
+        log.info("save saving setting");
 
         User user = userRepository.findById(Long.valueOf(savingConfigurations.getUserId()))
                 .orElseThrow(() ->
@@ -142,7 +156,7 @@ public class FinanceService {
         BigDecimal currentTotalIncome = totalIncome(incomeDTOList);
         Long currentTotalIncomeLong = currentTotalIncome.longValue();
 
-        log.info("income dto list : {} ", incomeDTOList);
+        log.info("save saving settings income dto list : {} ", incomeDTOList);
         log.info("current total income : {} ", currentTotalIncome);
 
         Long savingsSaved = currentTotalIncomeLong - currentMonthExpenses;
@@ -217,8 +231,7 @@ public class FinanceService {
 
         List<Income> income = incomeRepository.findAllByUser(user);
         List<IncomeDTO> incomeDTOList = incomeMapper.incomeListToIncomeDTOList(income);
-        log.info("retrieved income : {} ", income);
-        log.info("Income DTO List : {} ", incomeDTOList);
+        log.info("Finance settings Income DTO List : {} ", incomeDTOList);
 
         BigDecimal currentMonthTotalIncome = totalIncomeForCurrentMonth(incomeDTOList);
         log.info("current month income : {} ", currentMonthTotalIncome);
@@ -241,7 +254,7 @@ public class FinanceService {
     }
 
     private BigDecimal totalIncomeForCurrentMonth(List<IncomeDTO> incomeDTOList) {
-        log.info("current month : {}", currentMonth);
+        log.info("current month bigdecimal function: {}", currentMonth);
 
         return incomeDTOList.stream()
                 .filter(income -> isIncomeInSameMonth(income.getIncomeDate(), currentYear, currentMonth))

@@ -12,6 +12,8 @@ import com.yh.budgetly.rest.dtos.SavingsDTO;
 import com.yh.budgetly.rest.dtos.TransactionDTO;
 import com.yh.budgetly.rest.requests.MandatoryFields;
 import com.yh.budgetly.rest.responses.dashboard.DashboardResponse;
+import com.yh.budgetly.rest.responses.dashboard.MonthlyIncome;
+import com.yh.budgetly.rest.responses.dashboard.MonthlyTotal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +24,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 @Slf4j
 @Builder
@@ -39,6 +43,7 @@ public class DashboardService {
     private final SavingsMapper savingsMapper;
 
     public DashboardResponse dashboardResponse(MandatoryFields request) {
+        LocalDate now = LocalDate.now();
         String username = request.getUsername();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
@@ -53,12 +58,34 @@ public class DashboardService {
         List<TransactionDTO> transactionDTOList = transactionMapper.toTransactionDTOList(transaction);
         log.info("Transactions DTO size : {} ", transactionDTOList.size());
 
+        List<MonthlyTotal> monthlyTotalList = transactionRepository.findAllMonthAndTotalSpent(userId, now.getYear());
+        log.info("monthly total list : {} ", monthlyTotalList);
+
+        Map<Integer, BigDecimal> yearlyDashboardSpendings = new TreeMap<>();
+        Map<Integer, BigDecimal> yearlyDashboardIncome = new TreeMap<>();
+        for (int month = 1; month <= 12; month++) {
+            yearlyDashboardSpendings.put(month, BigDecimal.ZERO);
+            yearlyDashboardIncome.put(month, BigDecimal.ZERO);
+        }
+
+        monthlyTotalList.forEach(m -> yearlyDashboardSpendings.put(
+                Integer.parseInt(m.getMonthNum()),
+                m.getAmountSpent()
+        ));
+
+        log.info("yearly dashboard analysis : {} ", yearlyDashboardSpendings);
+
+
+        List<MonthlyIncome> monthlyTotalIncomeList = incomeRepository.findAllMonthAndAllIncome(userId, now.getYear());
+        log.info("monthly total income list : {}", monthlyTotalIncomeList);
+
+
         // Current month transaction
-        LocalDate startCurrentMonth = LocalDate.now().withDayOfMonth(1);
-        LocalDate startNextMonth = startCurrentMonth.plusMonths(1);
-//        LocalDate testDate = LocalDate.of(2024,12,4);
-//        LocalDate startCurrentMonth = testDate.withDayOfMonth(1);
+//        LocalDate startCurrentMonth = now.withDayOfMonth(1);
 //        LocalDate startNextMonth = startCurrentMonth.plusMonths(1);
+        LocalDate testDate = LocalDate.of(2025, 3,4);
+        LocalDate startCurrentMonth = testDate.withDayOfMonth(1);
+        LocalDate startNextMonth = startCurrentMonth.plusMonths(1);
         log.info("start current month : {} , start next month : {} " ,startCurrentMonth , startNextMonth);
         List<Transaction> currentMonthTransactions = transactionRepository
                 .findCurrentMonthTransactions(userId, startCurrentMonth, startNextMonth);
@@ -70,8 +97,9 @@ public class DashboardService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         log.info("current month total expenses : {} " , currentMonthTotalExpenses);
 
-        LocalDate now = LocalDate.now();
         LocalDate customDate = LocalDate.of(2025, 3, 1);
+
+        // change customDate to now, LocalDate.now() after testing
         String monthYear = customDate.format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
         Optional<Savings> savings = savingRepository.findByUserIdAndMonthYear(user.getUserId(), monthYear);
@@ -82,12 +110,10 @@ public class DashboardService {
 
         SavingsDTO savingsDTO = savings.map(savingsMapper::savingsToSavingsDTO).orElse(null);
 
-        DashboardResponse response = DashboardResponse.builder()
-                .transactionDTO(transactionDTOList)
+        return DashboardResponse.builder()
+                .transactionDTO(null)
                 .savingsDTO(savingsDTO)
                 .currentMonthExpenses(currentMonthTotalExpenses)
                 .build();
-
-        return response;
     }
 }
