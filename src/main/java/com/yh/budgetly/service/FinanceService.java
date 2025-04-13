@@ -1,6 +1,7 @@
 package com.yh.budgetly.service;
 
 import com.yh.budgetly.constants.CommonVariables;
+import com.yh.budgetly.constants.IncomeSource;
 import com.yh.budgetly.entity.Income;
 import com.yh.budgetly.entity.Savings;
 import com.yh.budgetly.entity.User;
@@ -20,9 +21,7 @@ import com.yh.budgetly.rest.responses.finances.FinanceSetting;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,30 +35,14 @@ import java.util.Optional;
 @Builder
 @Service
 @AllArgsConstructor
-@NoArgsConstructor
 public class FinanceService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private IncomeRepository incomeRepository;
-
-    @Autowired
-    private SavingRepository savingRepository;
-
-    @Autowired
-    private IncomeMapper incomeMapper;
-
-    @Autowired
-    private SavingsMapper savingsMapper;
-
-    @Autowired
-    private UserMapper userMapper;
-
-    private LocalDate currentDate = LocalDate.now();
-    private int currentYear = currentDate.getYear();
-    private Month currentMonth = currentDate.getMonth();
+    private final UserRepository userRepository;
+    private final IncomeRepository incomeRepository;
+    private final SavingRepository savingRepository;
+    private final IncomeMapper incomeMapper;
+    private final SavingsMapper savingsMapper;
+    private final UserMapper userMapper;
 
 
     public IncomeDTO saveIncomeSettings(IncomeConfigurations incomeConfigurations) {
@@ -90,7 +73,8 @@ public class FinanceService {
         Income income = incomeMapper.incomeDTOtoIncome(incomeDTO);
         log.info("income : {} ", income);
 
-        if (income.getSourceName().equalsIgnoreCase(CommonVariables.INCOME_SOURCE_CORPORATE_JOB)) {
+//        if (income.getSourceName().equalsIgnoreCase(CommonVariables.INCOME_SOURCE_CORPORATE_JOB)) {
+        if (IncomeSource.fromString(income.getSourceName()) == IncomeSource.CORPORATE_JOB) {
             // Update corporate instead of creating new record
             log.info("found a corporate job");
             Optional<Income> existingIncome = incomeRepository.findBySourceName(CommonVariables.INCOME_SOURCE_CORPORATE_JOB);
@@ -105,10 +89,13 @@ public class FinanceService {
                 LocalDateTime currentDate = LocalDateTime.now();
                 LocalDateTime existingDate = incomeToUpdate.getIncomeDate();
 
-                if (existingDate != null && (existingDate.getMonth() != currentDate.getMonth() || existingDate.getYear() != currentDate.getYear())) {
+                if (existingDate == null || !existingDate.toLocalDate().isEqual(currentDate.toLocalDate())) {
                     log.info("new income for the month");
-                    incomeToUpdate.setIncomeDate(currentDate);
+                    log.info("current date : {}", currentDate);
+//                    incomeToUpdate.setIncomeDate(currentDate);
+                    incomeToUpdate.setUpdatedAt(currentDate);
                 } else {
+                    log.info("else current date : {}", currentDate);
                     log.info("theres no new income for the month");
                 }
 
@@ -118,8 +105,8 @@ public class FinanceService {
                 Income savedIncome = incomeRepository.save(income);
                 return incomeMapper.incomeToIncomeDTO(savedIncome);
             }
-        }
-        else {
+        } else {
+            log.info("Saving income of name: {}", income.getSourceName());
             incomeRepository.save(income);
         }
 
@@ -133,6 +120,9 @@ public class FinanceService {
     public SavingsDTO saveSavingSetting(SavingConfigurations savingConfigurations) {
 
         log.info("save saving setting");
+
+        LocalDate currentDate = LocalDate.now();
+        int currentYear = currentDate.getYear();
 
         User user = userRepository.findById(Long.valueOf(savingConfigurations.getUserId()))
                 .orElseThrow(() ->
@@ -192,7 +182,7 @@ public class FinanceService {
 
                 if (updatedSavings > 0) {
                     log.info("Successfully updated your savings for the month");
-                      return SavingsDTO.builder()
+                    return SavingsDTO.builder()
                             .userDTO(userDTO)
                             .monthYear(String.valueOf(YearMonth.now()))
                             .totalExpenses(String.valueOf(savingsToUpdate.getTotalExpenses()))
@@ -254,6 +244,9 @@ public class FinanceService {
     }
 
     private BigDecimal totalIncomeForCurrentMonth(List<IncomeDTO> incomeDTOList) {
+        LocalDate currentDate = LocalDate.now();
+        int currentYear = currentDate.getYear();
+        Month currentMonth = currentDate.getMonth();
         log.info("current month bigdecimal function: {}", currentMonth);
 
         return incomeDTOList.stream()
@@ -262,7 +255,7 @@ public class FinanceService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-     boolean isIncomeInSameMonth(LocalDate incomeDate, int year, Month month) {
+    boolean isIncomeInSameMonth(LocalDate incomeDate, int year, Month month) {
         return incomeDate != null && incomeDate.getYear() == year && incomeDate.getMonth() == month;
     }
 

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MonthlyTotal {
+public class MonthlyTotalSpent {
     private String monthNum;
     private BigDecimal amountSpent;
 }

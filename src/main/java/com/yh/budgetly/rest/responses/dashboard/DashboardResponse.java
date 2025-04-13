@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -16,7 +17,10 @@ import java.util.List;
 @NoArgsConstructor
 public class DashboardResponse {
     private List<TransactionDTO> transactionDTO;
-    private List<MonthlyTotal> monthlyTotals;
+    private Map<String, BigDecimal> financeBreakDown;
+    private Map<Integer, MonthlyFinanceDTO> monthlyFinanceDTO;
+    private Map<Integer, BigDecimal> monthlyAmountSpent;
+    private Map<Integer, BigDecimal> monthlyIncome;
     private SavingsDTO savingsDTO;
     private BigDecimal currentMonthExpenses;
 }
