@@ -1,6 +1,5 @@
 package com.yh.budgetly.constants;
 
-import lombok.extern.slf4j.Slf4j;
 
 public enum IncomeSource {
     CORPORATE_JOB,

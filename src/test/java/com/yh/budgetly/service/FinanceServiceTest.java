@@ -101,7 +101,7 @@ public class FinanceServiceTest {
         Income existingIncome = new Income();
         existingIncome.setSourceName(CommonVariables.INCOME_SOURCE_CORPORATE_JOB);
         existingIncome.setUser(mockUser);
-        existingIncome.setIncomeDate(LocalDateTime.now());
+        existingIncome.setIncomeDate(LocalDate.now());
         existingIncome.setAmount(new BigDecimal("50")); // Existing amount
 
         Income updatedIncome = new Income();
@@ -217,7 +217,7 @@ public class FinanceServiceTest {
 
         Income mockIncome = new Income();
         mockIncome.setSourceName(source);
-        mockIncome.setIncomeDate(LocalDate.now().atStartOfDay());
+        mockIncome.setIncomeDate(LocalDate.from(LocalDate.now().atStartOfDay()));
         mockIncome.setUser(mockUser);
         mockIncome.setAmount(new BigDecimal(amount));
 
@@ -349,11 +349,11 @@ public class FinanceServiceTest {
         LocalDate currentDate = LocalDate.now();
         Income income1 = new Income();
         income1.setAmount(new BigDecimal("1000"));
-        income1.setIncomeDate(currentDate.atStartOfDay()); // Current month
+        income1.setIncomeDate(LocalDate.from(currentDate.atStartOfDay())); // Current month
 
         Income income2 = new Income();
         income2.setAmount(new BigDecimal("500"));
-        income2.setIncomeDate(currentDate.minusMonths(1).atStartOfDay()); // Previous month
+        income2.setIncomeDate(currentDate.minusMonths(1)); // Previous month
 
         List<Income> mockIncome = Arrays.asList(income1, income2);
 

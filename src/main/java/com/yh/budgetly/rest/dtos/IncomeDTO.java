@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -19,8 +20,8 @@ public class IncomeDTO {
     private String sourceName;
     private BigDecimal amount;
     private String description;
+    private LocalDateTime createdAt;
     private LocalDate incomeDate;
-    private LocalDate createdAt;
     private LocalDate updatedAt;
     private Boolean recurring;
 }

@@ -18,6 +18,7 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
 
     Optional<Income> findBySourceName(String sourceName);
 
+    List<Income> findAllBySourceName(String sourceName);
 
     @Query(value = "SELECT EXTRACT(MONTH FROM i.income_date)::VARCHAR AS monthNum, SUM(i.amount) AS amountSpent " +
             "FROM income i " +
@@ -48,4 +49,14 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             "AND MONTH(i.createdAt) = MONTH(CURRENT_DATE) " +
             "AND YEAR(i.createdAt) = YEAR(CURRENT_DATE)")
     Long countIncomeSourcesThisMonth(@Param("userId") String userId);
+
+    @Query("SELECT COUNT(i) FROM Income i " +
+            "WHERE i.user.id = :userId " +
+            "AND i.sourceName = 'Corporate Job' " +
+            "AND EXTRACT(MONTH FROM i.incomeDate) = :month " +
+            "AND EXTRACT(YEAR FROM i.incomeDate) = :year")
+    Long countCorporateJobForMonthAndYear(
+            @Param("userId") String userId,
+            @Param("month") int month,
+            @Param("year") int year);
 }

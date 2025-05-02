@@ -29,7 +29,11 @@ public interface SavingRepository extends JpaRepository<Savings, Long> {
 
 
     @Modifying
-    @Query("UPDATE Savings s SET s.totalExpenses = :totalExpenses, s.savingsGoal = :savingsGoal, s.createdAt = :createdAt WHERE s.user.id = :userId AND s.monthYear = :monthYear")
+    @Query("UPDATE Savings s SET s.totalExpenses = :totalExpenses," +
+            " s.savingsGoal = :savingsGoal," +
+            " s.createdAt = :createdAt " +
+            "WHERE s.user.id = :userId " +
+            "AND s.monthYear = :monthYear")
     int updateSavings(@Param("totalExpenses") String totalExpenses,
                       @Param("savingsGoal") String savingsGoal,
                       @Param("createdAt") LocalDate createdAt,

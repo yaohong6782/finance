@@ -45,6 +45,7 @@ public class FinanceService {
     private final UserMapper userMapper;
 
 
+    // SetIncomeSettingService file
     public IncomeDTO saveIncomeSettings(IncomeConfigurations incomeConfigurations) {
         if (incomeConfigurations.getIncomeDate() == null || incomeConfigurations.getIncomeDate().isBlank()) {
             ZonedDateTime currentDateTime = ZonedDateTime.now();
@@ -85,11 +86,13 @@ public class FinanceService {
 
                 BigDecimal incomeAmount = new BigDecimal(incomeConfigurations.getAmount());
                 incomeToUpdate.setAmount(incomeAmount);
+                // Forced
+                incomeToUpdate.setIncomeDate(LocalDate.now());
 
-                LocalDateTime currentDate = LocalDateTime.now();
-                LocalDateTime existingDate = incomeToUpdate.getIncomeDate();
+                LocalDate currentDate = LocalDate.now();
+                LocalDateTime existingDate = incomeToUpdate.getIncomeDate().atStartOfDay();
 
-                if (existingDate == null || !existingDate.toLocalDate().isEqual(currentDate.toLocalDate())) {
+                if (!existingDate.toLocalDate().isEqual(currentDate)) {
                     log.info("new income for the month");
                     log.info("current date : {}", currentDate);
 //                    incomeToUpdate.setIncomeDate(currentDate);
@@ -216,7 +219,7 @@ public class FinanceService {
 
         List<Savings> savings = savingRepository.findAllByUser(user);
         List<SavingsDTO> savingsDTOList = savingsMapper.incomeListToIncomeDTOList(savings);
-        ;
+
         log.info("retrieved savings {},  saving DTO list : {} ", savings, savingsDTOList);
 
         List<Income> income = incomeRepository.findAllByUser(user);

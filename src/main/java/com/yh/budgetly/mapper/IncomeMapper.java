@@ -34,7 +34,8 @@ public interface IncomeMapper {
 
     @AfterMapping
     default void setAdditionalFields(@MappingTarget IncomeDTO incomeDTO, IncomeConfigurations incomeConfigurations) {
-        incomeDTO.setCreatedAt(LocalDate.from(LocalDateTime.now()));
+//        incomeDTO.setCreatedAt(LocalDate.from(LocalDateTime.now()));
+        incomeDTO.setCreatedAt(LocalDateTime.now());
         // Add any additional mappings or logic here
         // Example: Map a new field in the future
         // incomeDTO.setSomeField(incomeConfigurations.getSomeField());
