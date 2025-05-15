@@ -18,6 +18,7 @@ public class TransactionFields {
     private String category;
     private String transactionDate;
     private String description;
+    private String paymentMethod;
 
     private Files files;
 }

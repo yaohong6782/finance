@@ -15,7 +15,7 @@ import java.util.List;
 public class IncomeConsumer {
     private final SetIncomeSettingService saveIncomeSettingService;
 
-    @KafkaListener(topics = "income-topic", groupId = "income-group", containerFactory = "userKafkaListenerContainerFactory")
+//    @KafkaListener(topics = "income-topic", groupId = "income-group", containerFactory = "userKafkaListenerContainerFactory")
     public void consumeIncomeEvent(UserDTOList wrapper) {
         List<UserDTO> userList = wrapper.getUserDTOs();
         log.info("Consumer is working on income for {} users", userList.size());

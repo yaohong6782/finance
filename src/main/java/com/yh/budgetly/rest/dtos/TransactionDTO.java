@@ -20,5 +20,6 @@ public class TransactionDTO {
     private String description;
     private LocalDate transactionDate;
     private LocalDate createdAt;
+    private String paymentMethod;
     private FileDTO fileDTO;
 }

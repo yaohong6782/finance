@@ -69,7 +69,8 @@ public class TransactionService {
                     .user(user)
                     .categories(categories)
                     .amount(transField.getAmount())
-                    .transactionDate(LocalDate.now())
+                    .transactionDate(LocalDate.parse(transField.getTransactionDate()))
+                    .paymentMethod(transField.getPaymentMethod())
                     .description(transField.getDescription())
                     .build();
 

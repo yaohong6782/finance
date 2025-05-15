@@ -23,4 +23,5 @@ public class DashboardResponse {
     private Map<Integer, BigDecimal> monthlyIncome;
     private SavingsDTO savingsDTO;
     private BigDecimal currentMonthExpenses;
+    private BigDecimal currentTotalSaved;
 }

@@ -1,6 +1,7 @@
 package com.yh.budgetly.repository;
 
 import com.yh.budgetly.entity.Transaction;
+import com.yh.budgetly.rest.responses.dashboard.MonthlyCreditCardPaymentDTO;
 import com.yh.budgetly.rest.responses.dashboard.MonthlyTotalSpent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,7 +22,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     // Utilised only when data set is small otherwise use Page - transactionPageSummary function
     @Query("SELECT t from Transaction t JOIN t.user u where u.userId = :userId")
-    List<Transaction> findUserTransactionById(String userId );
+    List<Transaction> findUserTransactionById(String userId);
 
     @Query("SELECT t from Transaction t " +
             "LEFT JOIN FETCH t.file f " +
@@ -56,4 +58,28 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("userId") String userId,
             @Param("year") int year);
 
+    @Query("SELECT SUM(t.amount) FROM Transaction t " +
+            "WHERE t.paymentMethod = :paymentMethod " +
+            "AND t.transactionDate >= :startOfMonth " +
+            "AND t.transactionDate <= :endOfMonth")
+    BigDecimal creditCardAmount(@Param("paymentMethod") String paymentMethod,
+                                @Param("startOfMonth") LocalDate startOfMonth,
+                                @Param("endOfMonth") LocalDate endOfMonth);
+
+    @Query("SELECT new com.yh.budgetly.rest.responses.dashboard.MonthlyCreditCardPaymentDTO(MONTH(t.transactionDate), SUM(t.amount)) " +
+            "FROM Transaction t " +
+            "WHERE t.paymentMethod = :paymentMethod " +
+            "AND t.transactionDate BETWEEN :startOfYear AND :endOfYear " +
+            "GROUP BY MONTH(t.transactionDate)")
+    List<MonthlyCreditCardPaymentDTO> getYearlyCreditCardPayments(@Param("paymentMethod") String paymentMethod,
+                                                                  @Param("startOfYear") LocalDate startOfYear,
+                                                                  @Param("endOfYear") LocalDate endOfYear);
+
+//    @Query(value = "SELECT EXTRACT(MONTH FROM t.transaction_date)::VARCHAR, SUM(t.amount) " +
+//            "FROM transactions t " +
+//            "WHERE t.user_id::VARCHAR = :userId AND EXTRACT(YEAR FROM t.transaction_date) = :year " +
+//            "GROUP BY 1 ORDER BY 1", nativeQuery = true)
+//    List<Object[]> findAllMonthAndTotalSpent(
+//            @Param("userId") String userId,
+//            @Param("year") int year);
 }

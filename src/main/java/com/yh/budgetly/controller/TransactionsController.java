@@ -1,11 +1,15 @@
 package com.yh.budgetly.controller;
 
 import com.yh.budgetly.exceptions.CustomException;
+import com.yh.budgetly.exceptions.ErrorResponse;
 import com.yh.budgetly.rest.dtos.TransactionDTO;
 import com.yh.budgetly.rest.requests.TransactionRequestFields;
 import com.yh.budgetly.rest.requests.TransactionSearchFields;
 import com.yh.budgetly.rest.requests.TransactionSummaryFields;
+import com.yh.budgetly.rest.responses.dashboard.DashboardResponse;
 import com.yh.budgetly.service.TransactionService;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,9 +33,14 @@ public class TransactionsController {
     @Tag(name = "Transaction", description = "This API records the transactions user have entered")
     @PostMapping("/addTransaction")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
-            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DashboardResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<List<TransactionDTO>> addTransaction(@RequestBody TransactionRequestFields transactionRequestFields) throws CustomException {
         log.info("Add transaction request : {} ", transactionRequestFields.getTransactions());
@@ -45,9 +54,14 @@ public class TransactionsController {
     @Tag(name = "Transaction", description = "This API records the transactions summaries for user")
     @PostMapping("/transactionSummary")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
-            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DashboardResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Page<TransactionDTO>> transactionSummary(@RequestBody TransactionSummaryFields transactionSummaryFields,
                                                                    @RequestParam(defaultValue = "0") int page,
@@ -63,9 +77,14 @@ public class TransactionsController {
     @Tag(name = "Transaction", description = "This API searches the transactions summaries for user")
     @PostMapping("/transactionSummarySearch")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
-            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint"),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DashboardResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Page<TransactionDTO>> searchTransactionSummary(@RequestBody TransactionSearchFields transactionSearchFields,
                                                      @RequestParam(defaultValue = "0") int page,

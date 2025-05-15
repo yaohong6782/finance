@@ -65,6 +65,7 @@ public class SetIncomeSettingService implements ServiceHandler<IncomeDTO, Income
                 .createdAt(LocalDateTime.now())
                 .incomeDate(checkIfDateIsNull(incomeConfigurations.getIncomeDate()))
                 .updatedAt(LocalDate.now())
+                .recurring(false)
                 .build();
 
         LocalDate currentDate = LocalDate.of(2025, 04, 1); // December 1st, 2023
@@ -118,8 +119,11 @@ public class SetIncomeSettingService implements ServiceHandler<IncomeDTO, Income
         log.info("Auto income saved for user {} with amount {}", user.getUserId(), defaultIncomeAmount);
     }
 
+//    private LocalDate checkIfDateIsNull(String date) {
+//        return date == null ? null : LocalDate.parse(date);
+//    }
     private LocalDate checkIfDateIsNull(String date) {
-        return date == null ? null : LocalDate.parse(date);
+        return date == null ? null : OffsetDateTime.parse(date).toLocalDate();
     }
 
     private boolean checkIfCorporateJobExist(String userId, LocalDate currentDate) {

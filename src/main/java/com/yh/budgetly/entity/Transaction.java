@@ -41,6 +41,9 @@ public class Transaction {
             updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDate createdAt;
 
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
     @OneToOne(mappedBy = "transaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Files file;
 }

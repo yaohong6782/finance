@@ -11,10 +11,7 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MonthlyFinanceDTO {
-    private BigDecimal spent;
-    private BigDecimal income;
-    private BigDecimal creditCardPayment;
-    private BigDecimal amountSaved;
-//    private BigDecimal debitPayment;
+public class MonthlyCreditCardPaymentDTO {
+    private Integer month;
+    private BigDecimal totalAmount;
 }
