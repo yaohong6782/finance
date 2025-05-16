@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 
@@ -13,12 +14,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TransactionFields {
-    // Add new transactions
     private BigDecimal amount;
     private String category;
     private String transactionDate;
     private String description;
     private String paymentMethod;
-
-    private Files files;
+    private Integer fileIndex;
+    private MultipartFile file;
 }

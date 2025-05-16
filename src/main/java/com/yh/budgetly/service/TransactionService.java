@@ -20,12 +20,16 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Builder
@@ -38,7 +42,8 @@ public class TransactionService {
     private final FileRepository fileRepository;
     private final TransactionMapper transactionMapper;
 
-    public List<TransactionDTO> addTransaction(TransactionRequestFields transactionRequestFields) {
+    public List<TransactionDTO> addTransaction(TransactionRequestFields transactionRequestFields,
+                                               Map<String, MultipartFile> files) {
         log.info("Processing transactions to be added : {} " , transactionRequestFields);
 
         String username = transactionRequestFields.getUser();
@@ -50,20 +55,21 @@ public class TransactionService {
         List<Categories> categoriesList = new ArrayList<>();
 
 
-        for (TransactionFields transField : transactionRequestFields.getTransactions()) {
+        for (int i = 0; i < transactionRequestFields.getTransactions().size(); i++) {
+            TransactionFields transField = transactionRequestFields.getTransactions().get(i);
+
             Categories categories = categoryRepository.findByType(transField.getCategory().toLowerCase())
                     .orElseGet(() -> {
-                Categories newCategory = new Categories();
-                newCategory.setType(transField.getCategory());
-
-                categoriesList.add(newCategory);
-                return newCategory;
-            });
+                        Categories newCategory = new Categories();
+                        newCategory.setType(transField.getCategory());
+                        categoriesList.add(newCategory);
+                        return newCategory;
+                    });
 
             if (!categoriesList.isEmpty()) {
                 categoryRepository.saveAll(categoriesList);
+                categoriesList.clear();
             }
-
 
             Transaction transaction = Transaction.builder()
                     .user(user)
@@ -74,23 +80,39 @@ public class TransactionService {
                     .description(transField.getDescription())
                     .build();
 
+            transactionRepository.save(transaction);
+            log.info("Transaction saved: {}", transaction);
 
-            Files file = transField.getFiles();
-            if (file != null) {
-                file.setTransaction(transaction);
-                file.setUploadedAt(LocalDate.now());
-                log.info("file info: {}", file);
-//                fileRepository.save(file);
-                transaction.setFile(file);
+            // Get file by "file{index}" key
+            if (files != null) {
+                MultipartFile multipartFile = files.get("file" + i);
+                if (multipartFile != null && !multipartFile.isEmpty()) {
+                    Files fileEntity = new Files();
+                    fileEntity.setTransaction(transaction);
+                    fileEntity.setUploadedAt(LocalDate.now());
+                    fileEntity.setFileName(multipartFile.getOriginalFilename());
+
+                    try {
+                        fileEntity.setFileData(multipartFile.getBytes());
+                        fileRepository.save(fileEntity);
+
+                        transaction.setFile(fileEntity);
+                        transactionRepository.save(transaction);
+
+                        log.info("File saved for transaction id {}: {}", transaction.getTransactionId(), fileEntity.getFileName());
+                    } catch (IOException e) {
+                        log.error("Failed to save file for transaction id " + transaction.getTransactionId(), e);
+                    }
+                }
             }
-            transactionsList.add(transaction);
-            transactionRepository.saveAll(transactionsList);
-        }
 
+            transactionsList.add(transaction);
+        }
         List<TransactionDTO> transactionDTOS = transactionMapper.toTransactionDTOList(transactionsList);
 
         return transactionDTOS;
     }
+
 
 
     public List<TransactionDTO> transactionSummary(String username) {
@@ -115,7 +137,7 @@ public class TransactionService {
                         new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
 
         String userId = String.valueOf(user.getUserId());
-        PageRequest pageRequest = PageRequest.of(page,size);
+        PageRequest pageRequest = PageRequest.of(page,size, Sort.by(Sort.Direction.DESC, "transactionDate"));
         Page<Transaction> transactionPage = transactionRepository.findUserTransactionByIdPagination(userId, pageRequest);
         log.info("transaction page : {} ", transactionPage);
 

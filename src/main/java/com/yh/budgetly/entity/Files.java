@@ -20,7 +20,7 @@ public class Files {
     private Long fileId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_id", nullable = false)
+    @JoinColumn(name = "transaction_id")
     private Transaction transaction;
 
     @Column(name = "file_name", length = 100, nullable = false)

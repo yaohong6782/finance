@@ -26,7 +26,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query("SELECT t from Transaction t " +
             "LEFT JOIN FETCH t.file f " +
-            "JOIN t.user u where u.userId = :userId")
+            "JOIN t.user u where u.userId = :userId " +
+            "ORDER BY t.transactionDate DESC")
     Page<Transaction> findUserTransactionByIdPagination(String userId, Pageable pageable);
 
     @Query("SELECT t FROM Transaction t " +

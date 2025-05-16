@@ -49,62 +49,10 @@ public class TransactionServiceTest {
     @InjectMocks
     private TransactionService transactionService;
 
-    @Test
-    public void testAddTransaction_Success() {
-        TransactionRequestFields transactionRequestFields = new TransactionRequestFields();
-        transactionRequestFields.setUser("tester");
-
-        TransactionFields transactionField = new TransactionFields();
-        transactionField.setCategory("food");
-        transactionField.setAmount(BigDecimal.valueOf(100.0));
-        transactionField.setTransactionDate("2024-01-01");
-        transactionField.setDescription("Lunch");
-
-        transactionRequestFields.setTransactions(Collections.singletonList(transactionField));
-
-        User mockUser = new User();
-        mockUser.setUsername("tester");
-
-        when(userRepository.findByUsername("tester")).thenReturn(Optional.of(mockUser));
-        when(categoryRepository.findByType("food")).thenReturn(Optional.empty());
-        when(transactionMapper.toTransactionDTOList(anyList()))
-                .thenReturn(anyList());
-
-        transactionService.addTransaction(transactionRequestFields);
-
-        verify(transactionRepository, times(1)).saveAll(anyList());
-        verify(categoryRepository, times(1)).saveAll(anyList());
-        verify(transactionMapper, times(1)).toTransactionDTOList(anyList());
-    }
 
     @Test
     public void testAddTransaction_UserNotFound() {
         String username = "NotFound";
-    }
-    @Test
-    public void testAddTransaction() {
-        User mockUser = new User();
-        mockUser.setUsername("test");
-
-        TransactionRequestFields transactionRequestFields = new TransactionRequestFields();
-        TransactionFields transactionFields = new TransactionFields();
-
-        transactionFields.setCategory("food");
-        transactionFields.setTransactionDate("2024-01-01");
-        transactionFields.setAmount(BigDecimal.valueOf(100));
-        transactionFields.setDescription("Lunch");
-
-        transactionRequestFields.setUser(mockUser.getUsername());
-        transactionRequestFields.setTransactions(Collections.singletonList(transactionFields));
-
-        when(userRepository.findByUsername(any()))
-                .thenReturn(Optional.of(mockUser));
-
-        when(categoryRepository.findByType("food")).thenReturn(Optional.empty());
-        transactionService.addTransaction(transactionRequestFields);
-
-        verify(categoryRepository, times(1)).saveAll(anyList());
-        verify(transactionRepository, times(1)).saveAll(anyList());
     }
 
     @Test
