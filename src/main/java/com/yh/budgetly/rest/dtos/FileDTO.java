@@ -15,6 +15,6 @@ import java.time.LocalDate;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FileDTO {
     private String fileName;
-    private byte[] fileData;
+    private String fileUrl;
     private LocalDate uploadedAt;
 }

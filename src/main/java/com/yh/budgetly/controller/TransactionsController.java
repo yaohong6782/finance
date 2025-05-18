@@ -56,7 +56,8 @@ public class TransactionsController {
             @RequestPart("transactions") String transactionsJson,
             @RequestParam(required = false) Map<String, MultipartFile> fileMap
     ) {
-        log.info("add transaction initialised");
+        log.info("add transaction initialised, user : {} , transactions : {} , file map : {} ",
+                user, transactionsJson, fileMap);
 
         ObjectMapper mapper = new ObjectMapper();
         List<TransactionFields> transactions;
@@ -68,19 +69,10 @@ public class TransactionsController {
             throw new RuntimeException("Invalid transactions JSON", e);
         }
 
-        TransactionRequestFields requestFields = new TransactionRequestFields();
-        requestFields.setUser(user);
-
-        // Attach files back to transactions based on index
-        for (int i = 0; i < transactions.size(); i++) {
-            TransactionFields tf = transactions.get(i);
-            if (tf.getFileIndex() != null) {
-                MultipartFile file = fileMap.get("file" + tf.getFileIndex());
-                tf.setFile(file);
-            }
-        }
-
-        requestFields.setTransactions(transactions);
+        TransactionRequestFields requestFields = TransactionRequestFields.builder()
+                .user(user)
+                .transactions(transactions)
+                .build();
 
         List<TransactionDTO> result = transactionService.addTransaction(requestFields, fileMap);
         return new ResponseEntity<>(result, HttpStatus.CREATED);

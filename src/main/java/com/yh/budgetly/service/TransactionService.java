@@ -84,9 +84,12 @@ public class TransactionService {
             log.info("Transaction saved: {}", transaction);
 
             // Get file by "file{index}" key
+            // Refer to Frontend for the key namings
             if (files != null) {
+                log.info("file is not null : {} ", files);
                 MultipartFile multipartFile = files.get("file" + i);
-                if (multipartFile != null && !multipartFile.isEmpty()) {
+                log.info("multi part file : {}, {}" , multipartFile.getOriginalFilename(), multipartFile.getName());
+                if (!multipartFile.isEmpty()) {
                     Files fileEntity = new Files();
                     fileEntity.setTransaction(transaction);
                     fileEntity.setUploadedAt(LocalDate.now());
@@ -101,7 +104,7 @@ public class TransactionService {
 
                         log.info("File saved for transaction id {}: {}", transaction.getTransactionId(), fileEntity.getFileName());
                     } catch (IOException e) {
-                        log.error("Failed to save file for transaction id " + transaction.getTransactionId(), e);
+                        log.error("Failed to save file for transaction id {}", transaction.getTransactionId(), e);
                     }
                 }
             }
