@@ -11,6 +11,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -50,9 +51,19 @@ public class SecurityConfiguration {
                                 .requestMatchers(HttpMethod.POST, "/transactions/**").permitAll() // Allow access to this endpoint
                                 .requestMatchers(HttpMethod.POST, "/dashboard/**").permitAll() // Allow access to this endpoint
                                 .requestMatchers(HttpMethod.POST, "/finances/**").permitAll() // Allow access to this endpoint
+                                .requestMatchers(HttpMethod.GET, "/api/**").permitAll() // Allow access to this endpoint
 //                        .requestMatchers(HttpMethod.POST, "/**").permitAll() // Allow access to this endpoint
                                 .anyRequest().authenticated()
                 )
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("frame-ancestors 'self' http://localhost:8085 http://localhost:3006")))
+//                .headers(headers -> headers
+//                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
+//                        .contentSecurityPolicy(contentSecurityPolicyConfig -> contentSecurityPolicyConfig
+//                                .policyDirectives("frame-ancestors 'self' http://localhost:8085")))
+//
                 .httpBasic(Customizer.withDefaults());
         return http.build();
 

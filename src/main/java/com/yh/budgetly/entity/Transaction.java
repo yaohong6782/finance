@@ -45,5 +45,5 @@ public class Transaction {
     private String paymentMethod;
 
     @OneToOne(mappedBy = "transaction", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    private Files file;
+    private FileEntity file;
 }

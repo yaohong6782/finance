@@ -1,6 +1,5 @@
 package com.yh.budgetly.rest.requests;
 
-import com.yh.budgetly.entity.Files;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

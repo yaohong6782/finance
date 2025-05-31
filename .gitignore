@@ -5,6 +5,8 @@ target/
 !**/src/test/**/target/
 application.properties
 application.yml
+application-dev.yml
+application-supabase.yml
 .env
 
 ### STS ###
