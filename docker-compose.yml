@@ -1,5 +1,12 @@
-version: '3.8'
+#version: '3.8'
 services:
+  budgetly-be:
+    build:
+      context: .
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=supabase
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: kafka-broker

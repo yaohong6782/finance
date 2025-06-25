@@ -30,9 +30,6 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
 
-//    @Qualifier("dashboardService")
-//    private final ServiceHandler<DashboardResponse, MandatoryFields> dashboardService;
-
     @Tag(name = "Dashboard", description = "This API displays the entire dashboard information")
     @PostMapping("/view")
     @ApiResponses(value = {

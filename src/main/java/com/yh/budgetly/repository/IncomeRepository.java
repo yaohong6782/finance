@@ -20,6 +20,17 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
 
     List<Income> findAllBySourceName(String sourceName);
 
+    @Query("SELECT i FROM Income i " +
+            "WHERE i.user.id = :userId " +
+            "AND sourceName = :sourceName " +
+            "AND EXTRACT(MONTH FROM i.incomeDate) = :month " +
+            "AND EXTRACT(YEAR FROM i.incomeDate) = :year")
+    Income findBySourceNameAndMonthYear(
+            @Param("userId") String userId,
+            @Param("sourceName") String sourceName,
+            @Param("month") int month,
+            @Param("year") int year);
+
     @Query(value = "SELECT EXTRACT(MONTH FROM i.income_date)::VARCHAR AS monthNum, SUM(i.amount) AS amountSpent " +
             "FROM income i " +
             "WHERE i.user_id::VARCHAR = :userId AND EXTRACT(YEAR FROM i.income_date) = :year " +
@@ -38,11 +49,20 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
 
     @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i " +
             "WHERE i.user.id = :userId " +
-            "AND EXTRACT(MONTH FROM i.createdAt) = :month " +
-            "AND EXTRACT(YEAR FROM i.createdAt) = :year")
+            "AND EXTRACT(MONTH FROM i.incomeDate) = :month " +
+            "AND EXTRACT(YEAR FROM i.incomeDate) = :year")
     Optional<BigDecimal> findTotalIncomeThisMonth(@Param("userId") String userId,
                                         @Param("month") int month,
                                         @Param("year") int year);
+
+    @Query("SELECT i FROM Income i " +
+            "WHERE i.user.id = :userId " +
+            "AND EXTRACT(MONTH FROM i.incomeDate) = :month " +
+            "AND EXTRACT(YEAR FROM i.incomeDate) = :year")
+    List<Income> findByMonthYear(@Param("userId") String userId,
+                                             @Param("month") int month,
+                                             @Param("year") int year);
+
 
     @Query("SELECT COUNT(DISTINCT i.sourceName) FROM Income i " +
             "WHERE i.user.id = :userId " +
@@ -52,11 +72,12 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
 
     @Query("SELECT COUNT(i) FROM Income i " +
             "WHERE i.user.id = :userId " +
-            "AND i.sourceName = 'Corporate Job' " +
+            "AND i.sourceName = :sourceName " +
             "AND EXTRACT(MONTH FROM i.incomeDate) = :month " +
             "AND EXTRACT(YEAR FROM i.incomeDate) = :year")
     Long countCorporateJobForMonthAndYear(
             @Param("userId") String userId,
+            @Param("sourceName") String sourceName,
             @Param("month") int month,
             @Param("year") int year);
 }

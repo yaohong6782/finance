@@ -19,12 +19,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -43,13 +43,12 @@ public class SetIncomeSettingService implements ServiceHandler<IncomeDTO, Income
 
     @Override
     public IncomeDTO save(IncomeConfigurations incomeConfigurations) {
-        log.info("Save Income setting initialised");
+        log.info("Save Income setting initialised values are : {} ", incomeConfigurations);
         if (incomeConfigurations.getIncomeDate() == null || incomeConfigurations.getIncomeDate().isBlank()) {
-            ZonedDateTime currentDateTime = ZonedDateTime.now();
-            LocalDate incomeDate = currentDateTime.withDayOfMonth(25).toLocalDate();
-            incomeConfigurations.setIncomeDate(incomeDate.toString());
+            incomeConfigurations.setIncomeDate("");
         }
         Long userId = Long.valueOf(incomeConfigurations.getUserId());
+        log.info("user id : {} " , userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
@@ -63,25 +62,30 @@ public class SetIncomeSettingService implements ServiceHandler<IncomeDTO, Income
                         BigDecimal.ZERO : new BigDecimal(incomeConfigurations.getAmount()))
                 .description(incomeConfigurations.getDescription())
                 .createdAt(LocalDateTime.now())
-                .incomeDate(checkIfDateIsNull(incomeConfigurations.getIncomeDate()))
+                .incomeDate(checkIfDateIsNull(incomeConfigurations.getIncomeDate(), incomeConfigurations.getSource(), incomeConfigurations.getIncomeDate()))
                 .updatedAt(LocalDate.now())
                 .recurring(false)
                 .build();
 
-        LocalDate currentDate = LocalDate.of(2025, 04, 1); // December 1st, 2023
+        LocalDate currentIncomeDate = LocalDate.now();
         Income saveIncome = incomeMapper.incomeDTOtoIncome(incomeDTO);
-        if (checkIfCorporateJobExist(String.valueOf(userId), currentDate)) {
-            log.info("there exist a corporate job this month, recommend update instead");
+        log.info("income dto date : {}, {}  " , incomeDTO.getIncomeDate(), currentIncomeDate);
+        if (checkIfCorporateJobExist(String.valueOf(userId), currentIncomeDate, "Corporate Job")) {
+            int currentMonth = currentIncomeDate.getMonthValue();
+            int currentYear = currentIncomeDate.getYear();
+            Income existedIncome = incomeRepository.findBySourceNameAndMonthYear(String.valueOf(userId), incomeConfigurations.getSource(), currentMonth, currentYear);
+            log.info("existed income ready to be updated : {} ", existedIncome);
         } else {
-            saveIncome.setIncomeDate(currentDate);
+            saveIncome.setIncomeDate(incomeDTO.getIncomeDate());
             incomeRepository.save(saveIncome);
+            log.info("SAVED SUCCESSFUL : {} ", incomeDTO);
         }
         return incomeDTO;
     }
 
     //    @Scheduled(cron = "0 0 0 25 * ?")
 //    @Scheduled(cron = "*/3 * * * * ?")
-    public void monthlyIncomeScheudler() {
+    public void monthlyIncomeScheduler() {
         log.info("Monthly income scheduler triggered");
         List<User> users = userRepository.findAll();
         List<UserDTO> userDTOList = userMapper.mapUserListToUserDTOList(users);
@@ -93,9 +97,8 @@ public class SetIncomeSettingService implements ServiceHandler<IncomeDTO, Income
         List<Income> defaultIncome = incomeRepository.findAllBySourceName("Corporate Job");
         BigDecimal defaultIncomeAmount = defaultIncome.isEmpty() ? BigDecimal.ZERO : defaultIncome.getFirst().getAmount();
 //
-        LocalDate currentDate = LocalDate.of(2025, 8, 25); // December 1st, 2023
-////        LocalDate currentDate = LocalDate.now();
-        if (checkIfCorporateJobExist(String.valueOf(user.getUserId()), currentDate)) {
+        LocalDate currentDate = LocalDate.now();
+        if (checkIfCorporateJobExist(String.valueOf(user.getUserId()), currentDate, "Corporate Job")) {
             log.info("Corporate job already exists for user {}, skipping", user.getUserId());
             return;
         }
@@ -119,19 +122,21 @@ public class SetIncomeSettingService implements ServiceHandler<IncomeDTO, Income
         log.info("Auto income saved for user {} with amount {}", user.getUserId(), defaultIncomeAmount);
     }
 
-//    private LocalDate checkIfDateIsNull(String date) {
-//        return date == null ? null : LocalDate.parse(date);
-//    }
-    private LocalDate checkIfDateIsNull(String date) {
-        return date == null ? null : OffsetDateTime.parse(date).toLocalDate();
+    private LocalDate checkIfDateIsNull(String date, String incomeSource, String selectedDate) {
+        if (date == null || date.isBlank()) {
+            if ("Corporate Job".equalsIgnoreCase(incomeSource)) {
+                log.info("Corporate job with no date");
+                return OffsetDateTime.now().withDayOfMonth(25).toLocalDate();
+            }
+            log.info("date is empty, setting to local date now");
+            return LocalDate.now();
+        }
+        return OffsetDateTime.parse(selectedDate).toLocalDate();
     }
 
-    private boolean checkIfCorporateJobExist(String userId, LocalDate currentDate) {
-        int simulatedMonth = currentDate.getMonthValue(); // 12
-        int simulatedYear = currentDate.getYear();
-
-        int currentMonth = LocalDate.now().getMonthValue();
-        int currentYear = LocalDate.now().getYear();
-        return incomeRepository.countCorporateJobForMonthAndYear(String.valueOf(userId), simulatedMonth, simulatedYear) != 0;
+    private boolean checkIfCorporateJobExist(String userId, LocalDate currentDate, String source) {
+        int currentMonth = currentDate.getMonthValue();
+        int currentYear = currentDate.getYear();
+        return incomeRepository.countCorporateJobForMonthAndYear(String.valueOf(userId), source, currentMonth, currentYear) != 0;
     }
 }

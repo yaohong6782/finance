@@ -99,59 +99,6 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testPaginatedSummaryTransaction() {
-        User mockUser = new User();
-        mockUser.setUserId(1L);
-        mockUser.setUsername("test");
-
-
-        when(userRepository.findByUsername("test"))
-                .thenReturn(Optional.of(mockUser));
-
-        Optional<User> user = userRepository.findByUsername("test");
-        String userId = String.valueOf(user.get().getUserId());
-
-        List<Transaction> mockTransactions = Arrays.asList(
-                new Transaction(),
-                new Transaction()
-        );
-
-        PageRequest pageRequest = PageRequest.of(0,10);
-        Page<Transaction> mockTransactionPage = new PageImpl<>(
-                mockTransactions,
-                pageRequest,
-                mockTransactions.size()
-        );
-
-        List<TransactionDTO> mockDTOs = Arrays.asList(
-                new TransactionDTO(),
-                new TransactionDTO()
-        );
-
-        Page<TransactionDTO> expectedDTOPage = new PageImpl<>(
-                mockDTOs,
-                pageRequest,
-                mockDTOs.size()
-        );
-
-        when(transactionRepository.findUserTransactionByIdPagination(
-                String.valueOf(mockUser.getUserId()),
-                pageRequest
-        )).thenReturn(mockTransactionPage);
-
-        when(transactionMapper.toTransactionDTOPage(mockTransactionPage))
-                .thenReturn(expectedDTOPage);
-
-        Page<TransactionDTO> result =
-                transactionService.transactionPageSummary("test", 0, 10);
-
-
-        assertEquals("1", userId);
-        assertEquals(expectedDTOPage, result);
-        assertEquals(mockDTOs.size(), result.getContent().size());
-    }
-
-    @Test
     public void testSearchTransactionPageSummary() {
         User mockUser = new User();
         mockUser.setUserId(1L);

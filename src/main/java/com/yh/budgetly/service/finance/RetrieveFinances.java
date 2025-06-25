@@ -64,13 +64,13 @@ public class RetrieveFinances implements ServiceHandler<FinanceSetting, UserDTO>
     }
 
     private BigDecimal totalIncomeForCurrentMonth(List<IncomeDTO> incomeDTOList) {
-//        LocalDate currentDate = LocalDate.now();
-//        int currentYear = currentDate.getYear();
-//        Month currentMonth = currentDate.getMonth();
-
-        LocalDate currentDate = LocalDate.of(2025, Month.APRIL, 25);
+        LocalDate currentDate = LocalDate.now();
         int currentYear = currentDate.getYear();
         Month currentMonth = currentDate.getMonth();
+
+//        LocalDate currentDate = LocalDate.of(2025, Month.APRIL, 25);
+//        int currentYear = currentDate.getYear();
+//        Month currentMonth = currentDate.getMonth();
         log.info("current year : {}, current month : {} ", currentYear, currentMonth);
         log.info("current month bigdecimal function: {}", currentMonth);
 

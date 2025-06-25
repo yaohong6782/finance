@@ -67,6 +67,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                 @Param("startOfMonth") LocalDate startOfMonth,
                                 @Param("endOfMonth") LocalDate endOfMonth);
 
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.user.userId = :userId AND t.transactionDate >= :startDate AND t.transactionDate <= :endDate")
+    BigDecimal findGivenMonthTransaction(
+            @Param("userId") String userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
     @Query("SELECT new com.yh.budgetly.rest.responses.dashboard.MonthlyCreditCardPaymentDTO(MONTH(t.transactionDate), SUM(t.amount)) " +
             "FROM Transaction t " +
             "WHERE t.paymentMethod = :paymentMethod " +
@@ -76,11 +83,4 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                                                   @Param("startOfYear") LocalDate startOfYear,
                                                                   @Param("endOfYear") LocalDate endOfYear);
 
-//    @Query(value = "SELECT EXTRACT(MONTH FROM t.transaction_date)::VARCHAR, SUM(t.amount) " +
-//            "FROM transactions t " +
-//            "WHERE t.user_id::VARCHAR = :userId AND EXTRACT(YEAR FROM t.transaction_date) = :year " +
-//            "GROUP BY 1 ORDER BY 1", nativeQuery = true)
-//    List<Object[]> findAllMonthAndTotalSpent(
-//            @Param("userId") String userId,
-//            @Param("year") int year);
 }

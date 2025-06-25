@@ -106,14 +106,11 @@ public class TransactionService {
             if (files != null) {
                 log.info("file is not null : {} ", files);
                 MultipartFile multipartFile = files.get("file" + i);
-                log.info("multi part file : {}, {}", multipartFile.getOriginalFilename(), multipartFile.getName());
-                if (!multipartFile.isEmpty()) {
+                if (multipartFile != null && !multipartFile.isEmpty()) {
+                    log.info("multi part file : {}, {}", multipartFile.getOriginalFilename(), multipartFile.getName());
                     FileEntity fileEntity = new FileEntity();
                     String sanitizedFileName = Utils.sanitizeFileName(Objects.requireNonNull(multipartFile.getOriginalFilename()));
                     String fileName = UUID.randomUUID() + "_" + sanitizedFileName;
-//                    Path filePath = Paths.get(uploadDir.getUploadDir());
-//                    Path filePathLocation = Paths.get(uploadDir.getUploadDir(), fileName);
-
 
                     fileEntity.setTransaction(transaction);
                     fileEntity.setUploadedAt(LocalDate.now());
@@ -121,10 +118,7 @@ public class TransactionService {
                     fileEntity.setBucketFileName(fileName);
                     fileEntity.setFileType(multipartFile.getContentType());
 
-//                    fileEntity.setFilePath(filePath.toString());
-
                     try {
-//                        Files.copy(multipartFile.getInputStream(), filePathLocation, StandardCopyOption.REPLACE_EXISTING);
 
                         String fileUrl = supabaseStorageService.uploadFile(multipartFile, fileName);
                         fileEntity.setFilePath(fileUrl);

@@ -1,10 +1,12 @@
 package com.yh.budgetly.service;
 
+import com.yh.budgetly.rest.dtos.SignedUrlDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -13,13 +15,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Slf4j
-@Component
 @Service
-@AllArgsConstructor
 public class SupabaseStorageService {
 
     @Value("${supabase.storage.url}")
@@ -31,7 +33,11 @@ public class SupabaseStorageService {
     @Value("${supabase.storage.service-role-key}")
     private String serviceRoleKey;
 
-    private WebClient webClient;
+    private final WebClient supabaseWebClient;
+
+    public SupabaseStorageService(WebClient supabaseWebClient) {
+        this.supabaseWebClient = supabaseWebClient;
+    }
 
     public String uploadFile(MultipartFile file, String fileName) throws IOException {
         String uploadUrl = String.format("%s/storage/v1/object/%s/%s", supabaseUrl, bucketName, fileName);
@@ -61,30 +67,29 @@ public class SupabaseStorageService {
         }
     }
 
-    public String signedBucketFile(String fileName, int expiresInSeconds) {
-        webClient = WebClient.builder()
-                .baseUrl(supabaseUrl)
-                .defaultHeader("apiKey,", serviceRoleKey)
-                .defaultHeader("Authorization", "Bearer " + serviceRoleKey)
-                .build();
+    public Mono<String> signedBucketFile(String fileName, int expiresInSeconds) {
+        log.info("signing bucket file : {}, {} ", fileName, expiresInSeconds);
 
-        String endpoint = "/storage/v1/object/sign" + bucketName + "/" + fileName;
-        String requestBody = "{\"expiresIn\":" +  expiresInSeconds + "}";
+        String endpoint = "/storage/v1/object/sign/" + bucketName + "/" + fileName;
+        Map<String, Object> requestBody = Map.of("expiresIn", expiresInSeconds);
 
-        String response = webClient.post()
+        Mono<String> response = supabaseWebClient.post()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBody)
                 .retrieve()
-                .bodyToMono(String.class)
-                .block();
+                .bodyToMono(SignedUrlDTO.class)
+                .map(res -> {
 
-        if (response == null || !response.contains("signedURL"))  {
-            throw new RuntimeException("Failed to get signed URL " + response);
-        }
+                    if (res == null || res.getSignedURL() == null) {
+                        throw new RuntimeException("Failed to get signed URL " + res);
+                    }
+                    String signedUrl = supabaseUrl + "/storage/v1" + res.getSignedURL();
 
-        String signedUrl = supabaseUrl + response.replaceAll(".*\"signedURL\":\"([^\"]+)\".*", "$1");
+                    log.info("signed url : {} ", signedUrl);
+                    return signedUrl;
+                });
 
-        return signedUrl;
+        return response;
     }
 }

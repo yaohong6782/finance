@@ -1,5 +1,6 @@
 package com.yh.budgetly.rest.responses.dashboard;
 
+import com.yh.budgetly.rest.dtos.ExpenseTrendDTO;
 import com.yh.budgetly.rest.dtos.SavingsDTO;
 import com.yh.budgetly.rest.dtos.TransactionDTO;
 import lombok.AllArgsConstructor;
@@ -23,5 +24,7 @@ public class DashboardResponse {
     private Map<Integer, BigDecimal> monthlyIncome;
     private SavingsDTO savingsDTO;
     private BigDecimal currentMonthExpenses;
-    private BigDecimal currentTotalSaved;
+    private BigDecimal currentNetSavings;
+    private BigDecimal currentNetIncome;
+    private ExpenseTrendDTO expenseTrendDTO;
 }

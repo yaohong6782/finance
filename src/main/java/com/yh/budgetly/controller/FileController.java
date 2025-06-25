@@ -7,6 +7,7 @@ import com.yh.budgetly.rest.dtos.FileDTO;
 import com.yh.budgetly.rest.dtos.FileResourceDTO;
 import com.yh.budgetly.rest.responses.dashboard.DashboardResponse;
 import com.yh.budgetly.service.FileService;
+import com.yh.budgetly.service.SupabaseStorageService;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -37,6 +39,7 @@ public class FileController {
     private final FileService fileService;
 
     private final FileStorageProperties uploadDir;
+    private final SupabaseStorageService supabaseStorageService;
 
     @Tag(name = "Receipt files", description = "This API retrieves the byte data of Receipts")
     @GetMapping("/getReceipts/{fileId}")
@@ -74,21 +77,13 @@ public class FileController {
 
 
     @GetMapping("/getFile/{fileName}")
-    public ResponseEntity<Resource> getReceiptFile(@PathVariable String fileName) {
-        log.info("file name : {} ", fileName);
-        FileResourceDTO fileResourceDTO = fileService.getReceipt(fileName);
-        Resource resource = fileResourceDTO.getResource();
-        MediaType mediaType = fileResourceDTO.getMediaType();
+    public Mono<ResponseEntity<String>> getReceiptFile(@PathVariable String fileName) {
+        log.info("getting receipt file name : {} ", fileName);
 
-        if (resource.exists() && resource.isReadable()) {
-            // Set the Content-Type and Content-Disposition headers
-            return ResponseEntity.ok()
-                    .contentType(mediaType)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return supabaseStorageService.signedBucketFile(fileName, 3600)
+                .map(signedUrl -> ResponseEntity.ok().body(signedUrl))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+
     }
 
     @GetMapping("/download/{fileName}")

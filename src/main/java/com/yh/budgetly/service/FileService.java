@@ -12,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.nio.file.Path;
@@ -24,6 +25,7 @@ import java.nio.file.Paths;
 public class FileService {
     private final FileRepository fileRepository;
     private final FileStorageProperties uploadDir;
+    private final SupabaseStorageService supabaseStorageService;
 
     public byte[] fileReceiptData(Long fileId) {
 
@@ -61,34 +63,29 @@ public class FileService {
                 .build();
     }
 
-    public FileResourceDTO getReceipt(String fileName) {
-
-        try {
-            log.info("Getting receipt");
-//            Path filePath = Paths.get(uploadDir.getUploadDir()).resolve(fileName).normalize();
-//            Resource resource = new UrlResource(filePath.toUri());
-            String publicUrl = "https://srismgquzuxjkdqpeixy.supabase.co/storage/v1/object/public/finance-receipts/" + fileName;
-            Resource resource = new UrlResource(publicUrl);
-
-//            if (!resource.exists() || !resource.isReadable()) {
-//                throw new RuntimeException("File not found or not readable: " + fileName);
+//    public FileResourceDTO getReceipt(String fileName) {
+//
+//        try {
+//            log.info("Getting receipt");
+//            Mono<String> publicUrl = supabaseStorageService.signedBucketFile(fileName, 3600);
+//            Resource resource = new UrlResource(publicUrl.toString());
+//
+//            FileDTO fileDTO = getFileDTO(fileName);
+//            String fileMediaType = fileDTO.getFileType();
+//
+//            MediaType mediaType;
+//            try {
+//                mediaType = MediaType.parseMediaType(fileMediaType);
+//            } catch (IllegalArgumentException e) {
+//                mediaType = MediaType.APPLICATION_OCTET_STREAM;
 //            }
+//
+//            return new FileResourceDTO(resource, mediaType);
+//
+//        } catch (MalformedURLException e) {
+//            log.error("Error : {} ", e.getMessage());
+//            throw new RuntimeException("Invalid file URL: " + fileName, e);
+//        }
+//    }
 
-            FileDTO fileDTO = getFileDTO(fileName);
-            String fileMediaType = fileDTO.getFileType();
-
-            MediaType mediaType;
-            try {
-                mediaType = MediaType.parseMediaType(fileMediaType);
-            } catch (IllegalArgumentException e) {
-                mediaType = MediaType.APPLICATION_OCTET_STREAM;
-            }
-
-            return new FileResourceDTO(resource, mediaType);
-
-        } catch (MalformedURLException e) {
-            log.error("Error : {} ", e.getMessage());
-            throw new RuntimeException("Invalid file URL: " + fileName, e);
-        }
-    }
 }
