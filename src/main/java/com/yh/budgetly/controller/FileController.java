@@ -41,8 +41,22 @@ public class FileController {
     private final FileStorageProperties uploadDir;
     private final SupabaseStorageService supabaseStorageService;
 
+    @GetMapping("/get-file/{fileName}")
+    public Mono<ResponseEntity<String>> getReceiptFile(@PathVariable String fileName) {
+        log.info("getting receipt file name : {} ", fileName);
+
+        return supabaseStorageService.signedBucketFile(fileName, 3600)
+                .map(signedUrl -> {
+                    log.info("Signed url on controller : {} " , signedUrl);
+                    return ResponseEntity.ok().body(signedUrl);
+                })
+                .doOnError(error -> log.error("Error getting signed URL: ", error))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+
+    }
+
     @Tag(name = "Receipt files", description = "This API retrieves the byte data of Receipts")
-    @GetMapping("/getReceipts/{fileId}")
+    @GetMapping("/get-receipts/{fileId}")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Receipt data retrieved successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = DashboardResponse.class))),
@@ -76,15 +90,6 @@ public class FileController {
     }
 
 
-    @GetMapping("/getFile/{fileName}")
-    public Mono<ResponseEntity<String>> getReceiptFile(@PathVariable String fileName) {
-        log.info("getting receipt file name : {} ", fileName);
-
-        return supabaseStorageService.signedBucketFile(fileName, 3600)
-                .map(signedUrl -> ResponseEntity.ok().body(signedUrl))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
-
-    }
 
     @GetMapping("/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) {

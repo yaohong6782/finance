@@ -25,6 +25,8 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,22 +52,19 @@ public class DashboardService {
 
         String userId = String.valueOf(user.getUserId());
 
+        log.info("user for dashboard : {} " , user);
         List<Transaction> transaction = transactionRepository.findUserTransactionById(userId);
         List<TransactionDTO> transactionDTOList = transactionMapper.toTransactionDTOList(transaction);
         log.info("Transactions DTO size : {} ", transactionDTOList.size());
 
-        Map<String, BigDecimal> financeBreakDown = new HashMap<>();
-        for (TransactionDTO transactionDTO : transactionDTOList) {
-            String categoryType = transactionDTO.getCategoriesDTO().getType();
-            BigDecimal amount = transactionDTO.getAmount();
-            financeBreakDown.put(
-                    categoryType,
-                    financeBreakDown.getOrDefault(categoryType, BigDecimal.ZERO).add(amount)
-            );
-        }
-
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
-        LocalDate endOfMonth = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());  // Last day of the current month
+        Map<String, BigDecimal> financeBreakDown = transactionDTOList.parallelStream()
+                .collect(Collectors.groupingByConcurrent(
+                        t -> t.getCategoriesDTO().getType(),
+                        Collectors.mapping(
+                                TransactionDTO::getAmount,
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                ));
 
         Map<Integer, MonthlyFinanceDTO> monthlyMapFinanceDTO = monthlyFinanceDTOMap(userId);
         log.info("monthly finance dto map : {} " , monthlyMapFinanceDTO);
@@ -134,30 +133,49 @@ public class DashboardService {
                 String userId) {
 
         int currentYear = LocalDate.now().getYear();
-        int currentMonth = LocalDate.now().getMonthValue();
 
-        Map<Integer, BigDecimal> yearlyCreditCardPayments = fetchYearlyCreditCardPayments();
-        Map<Integer, BigDecimal> yearlyDashboardSpending = fetchYearlySpending(userId, currentYear);
-        Map<Integer, BigDecimal> yearlyDashboardIncome = fetchYearlyIncome(userId, currentYear);
+        CompletableFuture<Map<Integer, BigDecimal>> yearlyCreditCardPayments =
+                CompletableFuture.supplyAsync(() -> fetchYearlyCreditCardPayments(userId));
 
+        CompletableFuture<Map<Integer, BigDecimal>> yearlyDashboardSpending =
+                CompletableFuture.supplyAsync(() -> fetchYearlySpending(userId, currentYear));
 
-        Map<Integer, MonthlyFinanceDTO> resultMap = new TreeMap<>();
-        for (int month = 1; month <= 12; month++) {
-            BigDecimal spent = yearlyDashboardSpending.getOrDefault(month, BigDecimal.ZERO);
-            BigDecimal income = yearlyDashboardIncome.getOrDefault(month, BigDecimal.ZERO);
-            BigDecimal creditCardPayment = yearlyCreditCardPayments.getOrDefault(month, BigDecimal.ZERO);
-            BigDecimal amountSaved = income.subtract(spent);
-            resultMap.put(month, new MonthlyFinanceDTO(spent, income, creditCardPayment, amountSaved));
+        CompletableFuture<Map<Integer, BigDecimal>> yearlyDashboardIncome =
+                CompletableFuture.supplyAsync(() -> fetchYearlyIncome(userId, currentYear));
+
+        CompletableFuture<Map<Integer, MonthlyFinanceDTO>> resultFutureMap = CompletableFuture.allOf(
+                yearlyDashboardSpending,
+                yearlyDashboardIncome,
+                yearlyCreditCardPayments
+        ).thenApply(v -> {
+            Map<Integer, BigDecimal> dashboardSpending = yearlyDashboardSpending.join();
+            Map<Integer, BigDecimal> dashboardIncome = yearlyDashboardIncome.join();
+            Map<Integer, BigDecimal> creditCardPayments = yearlyCreditCardPayments.join();
+
+            Map<Integer, MonthlyFinanceDTO> resultMap = new TreeMap<>();
+            for (int month = 1; month <= 12; month++) {
+                BigDecimal spent = dashboardSpending.getOrDefault(month, BigDecimal.ZERO);
+                BigDecimal income = dashboardIncome.getOrDefault(month, BigDecimal.ZERO);
+                BigDecimal creditCardPayment = creditCardPayments.getOrDefault(month, BigDecimal.ZERO);
+                BigDecimal amountSaved = income.subtract(spent);
+                resultMap.put(month, new MonthlyFinanceDTO(spent, income, creditCardPayment, amountSaved));
+            }
+            return resultMap;
+        });
+
+        try {
+            return resultFutureMap.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
         }
-        return resultMap;
     }
 
-    private Map<Integer, BigDecimal> fetchYearlyCreditCardPayments() {
+    private Map<Integer, BigDecimal> fetchYearlyCreditCardPayments(String userId) {
         LocalDate startOfYear = LocalDate.now().withDayOfYear(1);
         LocalDate endOfYear = LocalDate.now().withDayOfYear(1).plusYears(1).minusDays(1);
 
-        List<MonthlyCreditCardPaymentDTO> results = transactionRepository.getYearlyCreditCardPayments(
-                "Credit Card", startOfYear, endOfYear
+        List<MonthlyCreditCardPaymentDTO> results = transactionRepository.getYearlyCreditCardPaymentsByUsername(
+                userId, "Credit Card", startOfYear, endOfYear
         );
 
         Map<Integer, BigDecimal> yearlyCreditCardMap = results.stream()

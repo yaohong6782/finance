@@ -16,9 +16,7 @@ import java.time.LocalDate;
 public class SavingsDTO {
     private UserDTO userDTO;
     private String monthYear;
-    private String totalIncome;
     private String totalExpenses;
-    private String savingsAmount;
     private LocalDate createdAt;
     private String savingsGoal;
 }

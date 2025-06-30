@@ -35,10 +35,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         jwt = authHeader.substring(7);
+
+        log.info("=== JWT FILTER DEBUG ===");
+        log.info("Request URI: {}", request.getRequestURI());
+        log.info("Request Method: {}", request.getMethod());
+        log.info("Auth header: {}", authHeader);
+
         username = jwtService.extractUsername(jwt);
         // means the user is not authenticated yet
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
 
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

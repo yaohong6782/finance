@@ -4,6 +4,8 @@ FROM openjdk:21-jdk-slim
 # Set the working directory inside the container
 WORKDIR /app
 
+RUN mvn clean package
+
 # Copy the jar file into the container
 COPY target/*.jar app.jar
 

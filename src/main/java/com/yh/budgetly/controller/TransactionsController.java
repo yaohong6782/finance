@@ -40,7 +40,7 @@ public class TransactionsController {
     private final TransactionService transactionService;
 
     @Tag(name = "Transaction", description = "This API records the transactions user have entered")
-    @PostMapping(value = "/addTransaction", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/add-transactions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
                     content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = DashboardResponse.class))),
@@ -80,7 +80,7 @@ public class TransactionsController {
 
 
     @Tag(name = "Transaction", description = "This API records the transactions summaries for user")
-    @PostMapping("/transactionSummary")
+    @PostMapping("/transaction-summary")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = DashboardResponse.class))),
@@ -103,7 +103,7 @@ public class TransactionsController {
 
 
     @Tag(name = "Transaction", description = "This API searches the transactions summaries for user")
-    @PostMapping("/transactionSummarySearch")
+    @PostMapping("/transaction-summary-search")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = DashboardResponse.class))),

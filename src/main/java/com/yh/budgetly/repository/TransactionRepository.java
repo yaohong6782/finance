@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -76,11 +77,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query("SELECT new com.yh.budgetly.rest.responses.dashboard.MonthlyCreditCardPaymentDTO(MONTH(t.transactionDate), SUM(t.amount)) " +
             "FROM Transaction t " +
-            "WHERE t.paymentMethod = :paymentMethod " +
+            "WHERE t.user.userId = :userId " +
+            "AND t.paymentMethod = :paymentMethod " +
             "AND t.transactionDate BETWEEN :startOfYear AND :endOfYear " +
             "GROUP BY MONTH(t.transactionDate)")
-    List<MonthlyCreditCardPaymentDTO> getYearlyCreditCardPayments(@Param("paymentMethod") String paymentMethod,
-                                                                  @Param("startOfYear") LocalDate startOfYear,
-                                                                  @Param("endOfYear") LocalDate endOfYear);
+    List<MonthlyCreditCardPaymentDTO> getYearlyCreditCardPaymentsByUsername(
+            @Param("userId") String userId,
+            @Param("paymentMethod") String paymentMethod,
+            @Param("startOfYear") LocalDate startOfYear,
+            @Param("endOfYear") LocalDate endOfYear);
 
 }

@@ -15,6 +15,7 @@ import com.yh.budgetly.repository.UserRepository;
 import com.yh.budgetly.rest.dtos.IncomeDTO;
 import com.yh.budgetly.rest.dtos.UserDTO;
 import com.yh.budgetly.rest.requests.IncomeConfigurations;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,11 +48,13 @@ public class SetIncomeSettingService implements ServiceHandler<IncomeDTO, Income
         if (incomeConfigurations.getIncomeDate() == null || incomeConfigurations.getIncomeDate().isBlank()) {
             incomeConfigurations.setIncomeDate("");
         }
-        Long userId = Long.valueOf(incomeConfigurations.getUserId());
-        log.info("user id : {} " , userId);
-        User user = userRepository.findById(userId)
+        String username = incomeConfigurations.getUsername();
+        log.info("user name : {} " , username);
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
+
+        Long userId = user.getUserId();
 
         UserDTO userDTO = userMapper.mapUserToUserDTO(user);
 
@@ -70,11 +73,29 @@ public class SetIncomeSettingService implements ServiceHandler<IncomeDTO, Income
         LocalDate currentIncomeDate = LocalDate.now();
         Income saveIncome = incomeMapper.incomeDTOtoIncome(incomeDTO);
         log.info("income dto date : {}, {}  " , incomeDTO.getIncomeDate(), currentIncomeDate);
-        if (checkIfCorporateJobExist(String.valueOf(userId), currentIncomeDate, "Corporate Job")) {
+        if (checkIfCorporateJobExist(String.valueOf(userId), currentIncomeDate, "Corporate Job") &&  incomeConfigurations.getSource().equals("Corporate Job")) {
             int currentMonth = currentIncomeDate.getMonthValue();
             int currentYear = currentIncomeDate.getYear();
             Income existedIncome = incomeRepository.findBySourceNameAndMonthYear(String.valueOf(userId), incomeConfigurations.getSource(), currentMonth, currentYear);
             log.info("existed income ready to be updated : {} ", existedIncome);
+
+            LocalDate currentDate = LocalDate.now();
+            LocalDate startOfMonth = currentDate.withDayOfMonth(1);
+            LocalDate endOfMonth = currentDate.withDayOfMonth(currentDate.lengthOfMonth());
+            try {
+                int updatedIncome = incomeRepository.updateCorporateJobForMonthYear(
+                        new BigDecimal(incomeConfigurations.getAmount()),
+                        LocalDate.now(),
+                        existedIncome.getUser().getUserId(),
+                        startOfMonth,
+                        endOfMonth,
+                        "Corporate Job"
+                );
+                log.info("Updated income : {} " , updatedIncome);
+
+            } catch (Exception e) {
+                log.error("Failed to update : {} " , e.getMessage());
+            }
         } else {
             saveIncome.setIncomeDate(incomeDTO.getIncomeDate());
             incomeRepository.save(saveIncome);

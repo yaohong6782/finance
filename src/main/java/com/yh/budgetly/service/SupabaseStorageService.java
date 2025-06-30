@@ -73,7 +73,7 @@ public class SupabaseStorageService {
         String endpoint = "/storage/v1/object/sign/" + bucketName + "/" + fileName;
         Map<String, Object> requestBody = Map.of("expiresIn", expiresInSeconds);
 
-        Mono<String> response = supabaseWebClient.post()
+        return supabaseWebClient.post()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(requestBody)
@@ -85,11 +85,8 @@ public class SupabaseStorageService {
                         throw new RuntimeException("Failed to get signed URL " + res);
                     }
                     String signedUrl = supabaseUrl + "/storage/v1" + res.getSignedURL();
-
                     log.info("signed url : {} ", signedUrl);
                     return signedUrl;
                 });
-
-        return response;
     }
 }

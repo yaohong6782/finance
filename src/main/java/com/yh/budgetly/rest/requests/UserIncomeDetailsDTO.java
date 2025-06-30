@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserIncomeDetailsDTO {
-    private String userId;
+    private String username;
     private String monthYear;
 }

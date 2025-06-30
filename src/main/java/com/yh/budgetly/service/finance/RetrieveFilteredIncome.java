@@ -33,7 +33,7 @@ public class RetrieveFilteredIncome implements ServiceHandler<List<IncomeDTO>, U
     @Override
     public List<IncomeDTO> retrieve(UserIncomeDetailsDTO userIncomeDetailsDTO) {
 
-        log.info("Retrieve filter income service initialised");
+        log.info("Retrieve filter income service initialised : {}", userIncomeDetailsDTO);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-yyyy");
         // grabbing month and year from 05-2025
@@ -41,16 +41,17 @@ public class RetrieveFilteredIncome implements ServiceHandler<List<IncomeDTO>, U
         int month = yearMonth.getMonthValue();
         int year = yearMonth.getYear();
 
-        String userId = userIncomeDetailsDTO.getUserId();
-        userRepository.findByUserId(Long.parseLong(userId))
+        String username = userIncomeDetailsDTO.getUsername();
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
                         new CustomException(CommonVariables.USER_NOT_FOUND, HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase()));
 
-        List<Income> filteredIncome = incomeRepository.findByMonthYear(userId, month, year);
-        List<IncomeDTO> filterdIncomeDTO = incomeMapper.incomeListToIncomeDTOList(filteredIncome);
+        Long userId = user.getUserId();
+        List<Income> filteredIncome = incomeRepository.findByMonthYear(String.valueOf(userId), month, year);
+        List<IncomeDTO> filteredIncomeDTO = incomeMapper.incomeListToIncomeDTOList(filteredIncome);
 
-        log.info("filtered income dto for : {} is : {} ", yearMonth, filterdIncomeDTO);
+        log.info("filtered income dto for : {} is : {} ", yearMonth, filteredIncomeDTO);
 
-        return filterdIncomeDTO;
+        return filteredIncomeDTO;
     }
 }

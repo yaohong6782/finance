@@ -5,7 +5,6 @@ public enum IncomeSource {
     CORPORATE_JOB,
     FREELANCE,
     INVESTMENTS,
-    STOCKS,
     OTHER;
 
     public static IncomeSource fromString(String source) {
@@ -15,7 +14,6 @@ public enum IncomeSource {
         return switch (label) {
             case "CORPORATE_JOB" -> CORPORATE_JOB;
             case "FREELANCE" -> FREELANCE;
-            case "STOCKS" -> STOCKS;
             case "INVESTMENTS" -> INVESTMENTS;
             case "OTHER" -> OTHER;
             default -> null;

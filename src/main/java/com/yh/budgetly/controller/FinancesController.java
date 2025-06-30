@@ -5,12 +5,8 @@ import com.yh.budgetly.interfaces.ServiceHandler;
 import com.yh.budgetly.rest.dtos.IncomeDTO;
 import com.yh.budgetly.rest.dtos.SavingsDTO;
 import com.yh.budgetly.rest.dtos.UserDTO;
-import com.yh.budgetly.rest.requests.IncomeConfigurations;
-import com.yh.budgetly.rest.requests.SavingConfigurations;
-import com.yh.budgetly.rest.requests.UserIncomeDetailsDTO;
-import com.yh.budgetly.rest.responses.dashboard.DashboardResponse;
+import com.yh.budgetly.rest.requests.*;
 import com.yh.budgetly.rest.responses.finances.FinanceSetting;
-import com.yh.budgetly.service.finance.SetIncomeSettingService;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,17 +31,20 @@ public class FinancesController {
     @Qualifier("setIncomeSettingService")
     private final ServiceHandler<IncomeDTO, IncomeConfigurations> setIncomeSettingService;
 
-    @Qualifier("setSavingService")
-    private final ServiceHandler<SavingsDTO, SavingConfigurations> setSavingService;
-
     @Qualifier("retrieveFinances")
     private final ServiceHandler<FinanceSetting, UserDTO> retrieveFinances;
 
     @Qualifier("retrieveFilteredIncome")
     private final ServiceHandler<List<IncomeDTO>, UserIncomeDetailsDTO> retrieveFilteredIncome;
 
+    @Qualifier("setFinanceGoals")
+    private final ServiceHandler<SavingsDTO, UserFinanceGoals> setFinanceGoals;
+
+    @Qualifier("viewFinanceGoals")
+    private final ServiceHandler<SavingsDTO, UserFinanceGoals> viewFinanceGoals;
+
     @Tag(name = "Finances", description = "This API configures user's income settings")
-    @PostMapping("/setIncome")
+    @PostMapping("/set-income")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = IncomeDTO.class))),
@@ -63,28 +62,8 @@ public class FinancesController {
         return new ResponseEntity<>(incomeDTO, HttpStatus.OK);
     }
 
-    @Tag(name = "Finances", description = "This API configures user's saving settings")
-    @PostMapping("/setSaving")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = SavingsDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid ID supplied",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<SavingsDTO> setSaving(@RequestBody SavingConfigurations savingConfigurations) {
-
-        log.info("Savings configurations : {} ", savingConfigurations);
-        SavingsDTO savingsDTO = setSavingService.save(savingConfigurations);
-
-        return new ResponseEntity<>(savingsDTO, HttpStatus.OK);
-    }
-
     @Tag(name = "Finances", description = "This API retrieves finance settings")
-    @PostMapping("/retrieveSettings")
+    @PostMapping("/retrieve-setting")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = FinanceSetting.class))),
@@ -104,7 +83,7 @@ public class FinancesController {
     }
 
     @Tag(name = "Finances", description = "This API retrieves finance settings")
-    @PostMapping("/retrieveFilteredIncome")
+    @PostMapping("/retrieve-filtered-income")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = IncomeDTO.class))),
@@ -123,4 +102,42 @@ public class FinancesController {
         return new ResponseEntity<>(incomeDTO, HttpStatus.OK);
     }
 
+    @Tag(name = "Finances", description = "This API retrieves finance settings")
+    @PostMapping("/finance-goals")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserFinanceGoals.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<SavingsDTO> setFinanceGoals(@RequestBody UserFinanceGoals userFinanceGoals) {
+
+        log.info("Finance goal initialised : {} ", userFinanceGoals);
+        SavingsDTO savingsDTO = setFinanceGoals.save(userFinanceGoals);
+
+        return new ResponseEntity<>(savingsDTO, HttpStatus.OK);
+    }
+    @Tag(name = "Finances", description = "This API retrieves finance settings")
+    @PostMapping("/view-finance-goals")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserFinanceGoals.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Unable to find requested endpoint",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<SavingsDTO> viewFinanceGoals(@RequestBody UserFinanceGoals userFinanceGoals) {
+
+        log.info("Viewing Finance goal initialised : {} ", userFinanceGoals);
+        SavingsDTO savingsDTO = viewFinanceGoals.retrieve(userFinanceGoals);
+
+        return new ResponseEntity<>(savingsDTO, HttpStatus.OK);
+    }
 }

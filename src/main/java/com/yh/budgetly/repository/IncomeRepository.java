@@ -3,12 +3,15 @@ package com.yh.budgetly.repository;
 import com.yh.budgetly.entity.Income;
 import com.yh.budgetly.entity.User;
 import com.yh.budgetly.rest.responses.dashboard.MonthlyIncome;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -80,4 +83,20 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             @Param("sourceName") String sourceName,
             @Param("month") int month,
             @Param("year") int year);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Income i SET i.amount = :amount, i.updatedAt = :updatedAt " +
+            "WHERE i.user.id = :userId " +
+            "AND i.incomeDate BETWEEN :startDate and :endDate " +
+            "AND i.sourceName = :sourceName")
+    int updateCorporateJobForMonthYear(
+            @Param("amount") BigDecimal amount,
+            @Param("updatedAt") LocalDate updatedAt,
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("sourceName") String sourceName
+            );
+
 }

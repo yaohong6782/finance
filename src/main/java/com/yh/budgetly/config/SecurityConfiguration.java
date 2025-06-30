@@ -42,8 +42,10 @@ public class SecurityConfiguration {
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:3006")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedMethods("*")
+                        .allowedHeaders("Authorization", "Content-Type")
+                        .exposedHeaders("Authorization")
                         .allowCredentials(true);
             }
         };
@@ -52,7 +54,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3006"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3006", "http://localhost:8085"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -69,28 +71,25 @@ public class SecurityConfiguration {
                 .cors(httpSecurityCorsConfigurer ->
                         httpSecurityCorsConfigurer.configurationSource(request ->
                                 new CorsConfiguration().applyPermitDefaultValues()))
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .securityMatcher("/**")
                 .sessionManagement(sessionManagementConfigurer ->
                         sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(registry -> registry
-                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()
-                                .requestMatchers("/").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/finances/**").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/dashboard/**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/*").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/*").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/transactions/**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/finances/**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/api/files/**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/user/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/login/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/user/logout").permitAll()
-                                .anyRequest()
-                        .authenticated()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()
+                        .requestMatchers("/").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/finances/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/dashboard/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/transactions/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/finances/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/user/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/login/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/user/logout").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
