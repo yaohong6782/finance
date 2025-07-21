@@ -1,19 +1,21 @@
 # Finance App - Backend
-This is the backend repository for my personal Finance App, built using Java and Spring Boot. 
-The backend is designed to handle core financial functionalities such as transaction tracking, budgeting, user management, and integration with Kafka for asynchronous event processing.
+Originally started as a coding template to teach and reinforce backend fundamentals, this project gradually evolved into a full backend stack powering a real-world finance management application.
 
-The application follows a modular, service-oriented architecture with features including:
+The backend is responsible for handling core financial functionalities such as transaction tracking, budgeting, user management, and Kafka-based asynchronous messaging. It follows a modular and service-oriented architecture with clean code practices.
 
-JWT-based authentication and authorization
+Key Features:
+✅ JWT-based authentication and authorization
 
-RESTful APIs for secure client interaction
+📊 RESTful APIs for managing users, transactions, budgets, etc.
 
-PostgreSQL (or your DB) as the persistent data store
+🐘 PostgreSQL as the persistent data store
 
-Kafka integration for messaging (e.g., email notifications or transaction logs)
+📦 Kafka integration for event-driven communication (e.g., sending emails or logging activities)
 
-Entity-DTO mapping using MapStruct
+🔁 Entity-to-DTO mapping using MapStruct
 
-Docker support for containerized deployment
+🐳 Docker support for containerized deployment
 
-This repository serves as the core engine powering the finance app’s backend logic, and is built with scalability, maintainability, and clean architecture in mind.
+🧪 Unit-tested service layer for reliability
+
+This repository reflects a complete backend solution designed with scalability, maintainability, and teaching in mind.
